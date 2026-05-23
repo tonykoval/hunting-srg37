@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 10 · Breaking the Wall — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 10 · Part III</span>
+    Breaking the Wall
+</h1>
+
+<p class="lead">
+Every failure in Part II carries its own remedy. Here they are, ranked by
+the probability of actually producing a $6803$rd graph per unit of
+effort — and a scoreboard you can filter to see exactly where each
+attack stopped.
+</p>
+
+<h2>10.1 &nbsp; The scoreboard</h2>
+
+<p>
+Filter the dozen attacks by family or by outcome. The column that never
+changes is the last one.
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">Attack scoreboard</span>
+    <div class="controls">
+        <label for="sb-family">Family:</label>
+        <select id="sb-family">
+            <option value="all">all</option>
+            <option value="SAT">SAT &amp; constraint</option>
+            <option value="Switching">switching</option>
+            <option value="Search">local / continuous</option>
+            <option value="LLM">LLM-driven</option>
+            <option value="Backtrack">backtracking</option>
+        </select>
+        <label for="sb-out">Outcome:</label>
+        <select id="sb-out">
+            <option value="all">all</option>
+            <option value="promising">promising</option>
+            <option value="exhausted">exhausted</option>
+        </select>
+        <span style="font-family: var(--font-mono); font-size: 0.85em;">
+            new graphs: <span class="readout" id="sb-total" style="color:#b00020;">0</span>
+        </span>
+    </div>
+    <table>
+        <thead><tr><th>Family</th><th>Attack</th><th>Budget</th><th>Result</th><th>New</th></tr></thead>
+        <tbody id="sb-body"></tbody>
+    </table>
+</div>
+
+<h2>10.2 &nbsp; The plan, ranked</h2>
+
+<h3>1. Distributed SMS+CCL at cube size $\ge 7$ &nbsp;<em>(highest probability)</em></h3>
+<p>
+The one attack that visibly worked was the canonicity-propagated
+cube-and-conquer of $\S$4.4: $28$ of $32$ cubes refuted in under a
+minute. The four survivors need (a) more cubes — split at size $7$ for
+$128$ pieces, isolating the hot spots — (b) a real cluster, and (c) the
+<code>--timeout</code> bug fixed so deep cubes are bounded and recycled.
+Estimated cost: a week of wall-clock on a modest cloud cluster,
+\$200–\$500. If $\#6803$ is reachable by enumeration, this finds it.
+</p>
+
+<h3>2. Rust extension backtracker with bitset propagation &nbsp;<em>(most actionable)</em></h3>
+<p>
+We already hold $30{,}122$ concrete unaccounted neighbourhoods
+($\S$3.3). A compiled backtracker
+(<code>popcount(adj[i] &amp; adj[j])</code> for common neighbours,
+masked scans for degree saturation) can test thousands of them per
+CPU-day. Any single extension is a discovery; systematic failure starts
+to <em>quantify</em> completeness. This needs no cluster and no budget —
+just the multi-day implementation begun in <code>orbit-gen</code>
+v1.0.514.
+</p>
+
+<h3>3. Verifier-coupled learned policy &nbsp;<em>(research-grade)</em></h3>
+<p>
+The LLM frameworks failed by asking for a one-shot answer. Couple
+generation to the cheap verifier instead: fine-tune a small model on
+(graph, valid?) pairs and use it as the policy in an MCTS over partial
+adjacency matrices, expanding only branches the propagator has not killed.
+This is the unspent <code>llm_mcts_search.py</code> framework; it is the
+most speculative and the most interesting.
+</p>
+
+<h3>4. A completeness proof &nbsp;<em>(the other way to win)</em></h3>
+<p>
+Failing to find $\#6803$ is not the same as proving it absent. A genuine
+classification — closing the million unaccounted neighbourhoods, e.g. via
+a Lasserre/SDP hierarchy bound or a structured exhaustive
+two-graph enumeration — would settle the question in the opposite
+direction. This is an open problem in finite geometry in its own right,
+and the hardest item on the list.
+</p>
+
+<h2>10.3 &nbsp; Two ways this ends</h2>
+
+<div class="callout theorem">
+    <div class="callout-title">The two endings</div>
+    <p>
+    <strong>A new graph.</strong> Path 1 or 2 yields a valid
+    $\mathrm{SRG}(37,18,8,9)$ whose canonical form is absent from the
+    catalog. The count becomes (at least) $6803$ and the classification
+    advances for the first time since 2001.<br>
+    <strong>A proof of closure.</strong> Path 4 shows $6802$ is final —
+    the harder, more definitive ending, and a result about conference
+    graphs well beyond this single tuple.
+    </p>
+</div>
+
+<p>
+Either ending is publishable; neither is reached yet. The tools to
+attempt both are catalogued next, in
+<a href="ch11_tools.html">Chapter 11</a> — every image, script and data
+file, ready to run.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch09_findings.html">Ch 9 · Empirical Findings</a>
+    <a class="next" href="ch11_tools.html">Ch 11 · Tools &amp; Reproducibility</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 10 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- Attack scoreboard --------------------- */
+(function () {
+    "use strict";
+    const ROWS = [
+        { fam: "SAT", attack: "de Caen rich-Aut survey", budget: "40 seeds × 180 s", result: "all time out (Wall A)", out: "exhausted" },
+        { fam: "SAT", attack: "Smart Cubing (prerun + conquer)", budget: "~1024 cubes × 60 s", result: "all UNKNOWN", out: "exhausted" },
+        { fam: "SAT", attack: "SMS+CCL two-graph(38), cube 5", budget: "32 cubes", result: "28 UNSAT, 4 deep-searching", out: "promising" },
+        { fam: "SAT", attack: "Neighbour extension (CP-SAT + kissat)", budget: "60 cands × 30–300 s", result: "0 SAT, 0 refuted", out: "exhausted" },
+        { fam: "Switching", attack: "Godsil–McKay single-cell (4–12)", budget: "exhaustive + sampled", result: "0 valid cells", out: "exhausted" },
+        { fam: "Switching", attack: "Godsil–McKay multi-cell", budget: "50k × (4,4)/(4,6)/(6,6)", result: "0 valid cell pairs", out: "exhausted" },
+        { fam: "Search", attack: "Catalog basin-hopping (LK-2)", budget: "360 × 20 × 5000", result: "0 novel; 4% recover seed", out: "exhausted" },
+        { fam: "Search", attack: "Simulated annealing", budget: "120 × 50 000", result: "best viol ≥ 340", out: "exhausted" },
+        { fam: "Search", attack: "Euclidean embedding (Adam, ℝ¹⁸)", budget: "70 trials", result: "binarised viol ~1000", out: "exhausted" },
+        { fam: "LLM", attack: "AlphaEvolve (GPT-5)", budget: "2 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
+        { fam: "LLM", attack: "cpro1 algebraic constructor", budget: "10 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
+        { fam: "LLM", attack: "Multi-agent debate (4 roles)", budget: "5 / 5 rounds", result: "best viol 1148", out: "exhausted" },
+        { fam: "Backtrack", attack: "Python extension backtracker", budget: "220 nodes/s, 30 s", result: "no extension found", out: "exhausted" },
+        { fam: "Backtrack", attack: "Rust bitset extender", budget: "in progress", result: "orders of magnitude faster", out: "promising" },
+    ];
+    const $ = id => document.getElementById(id);
+    const body = $("sb-body");
+
+    function render() {
+        const f = $("sb-family").value, o = $("sb-out").value;
+        body.innerHTML = "";
+        let shown = 0;
+        for (const r of ROWS) {
+            if (f !== "all" && r.fam !== f) continue;
+            if (o !== "all" && r.out !== o) continue;
+            shown++;
+            const tr = document.createElement("tr");
+            const tag = r.out === "promising"
+                ? '<span style="color:#2e7d32;">' + r.result + '</span>'
+                : r.result;
+            tr.innerHTML =
+                `<td>${r.fam}</td><td>${r.attack}</td><td style="font-family:var(--font-mono);font-size:0.85em">${r.budget}</td>` +
+                `<td>${tag}</td><td style="text-align:center;color:#b00020;font-weight:600">0</td>`;
+            body.appendChild(tr);
+        }
+        $("sb-total").textContent = "0  (" + shown + " attacks shown)";
+    }
+    $("sb-family").addEventListener("change", render);
+    $("sb-out").addEventListener("change", render);
+    render();
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix B · Bibliography — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Appendix B</span>
+    Bibliography
+</h1>
+
+<p class="lead">
+Sources are grouped by role. The three classification papers in
+$\S$B.2 are the authority for the number $6802$.
+</p>
+
+<h2>B.1 &nbsp; Foundations</h2>
+
+<ul style="font-family: var(--font-sans); font-size: 0.95em; line-height: 1.5;">
+    <li>R. E. A. C. Paley. <em>On orthogonal matrices.</em> J. Math. Phys. <strong>12</strong> (1933), 311–320.</li>
+    <li>R. C. Bose. <em>Strongly regular graphs, partial geometries and partially balanced designs.</em> Pacific J. Math. <strong>13</strong> (1963), 389–419.</li>
+    <li>A. E. Brouwer, A. M. Cohen, A. Neumaier. <em>Distance-Regular Graphs.</em> Springer, 1989. (Krein conditions, absolute bound.)</li>
+    <li>A. E. Brouwer, H. Van Maldeghem. <em>Strongly Regular Graphs.</em> Encyclopedia of Mathematics and its Applications <strong>182</strong>, Cambridge University Press, 2022.</li>
+    <li>A. E. Brouwer. <em>Parameters of strongly regular graphs</em> (online table). <a href="https://aeb.win.tue.nl/graphs/srg/srgtab.html">aeb.win.tue.nl/graphs/srg/srgtab.html</a>.</li>
+    <li>J. J. Seidel. <em>A survey of two-graphs.</em> In: Colloquio Internazionale sulle Teorie Combinatorie, Roma 1973, Vol. I, Accad. Naz. Lincei (1976), 481–511.</li>
+</ul>
+
+<h2>B.2 &nbsp; The $(37,18,8,9)$ classification</h2>
+
+<ul style="font-family: var(--font-sans); font-size: 0.95em; line-height: 1.5;">
+    <li>E. Spence. <em>Strongly regular graphs</em> (data collection, incl. the $\mathrm{SRG}(37,18,8,9)$ file <code>sr371889</code>). <a href="https://www.maths.gla.ac.uk/~es/srgraphs.php">maths.gla.ac.uk/~es/srgraphs.php</a>. (6760 graphs.)</li>
+    <li>B. D. McKay, E. Spence. <em>Classification of regular two-graphs on 36 and 38 vertices.</em> Australas. J. Combin. <strong>24</strong> (2001), 293–300. (The "million unsearched neighbourhoods" source.)</li>
+    <li>D. Crnković, M. Maksimović. <em>Strongly regular graphs with parameters (37,18,8,9) having nontrivial automorphisms.</em> Art Discrete Appl. Math. <strong>3</strong> (2020) #P2.10. (+6 graphs.)</li>
+    <li>M. Maksimović, S. Rukavina. <em>New regular two-graphs on 38 and 42 vertices.</em> Math. Commun. <strong>27</strong> (2022), 151–161. (+36 graphs; total 6802.)</li>
+</ul>
+
+<h2>B.3 &nbsp; Methods &amp; tools</h2>
+
+<ul style="font-family: var(--font-sans); font-size: 0.95em; line-height: 1.5;">
+    <li>C. D. Godsil, B. D. McKay. <em>Constructing cospectral graphs.</em> Aequationes Math. <strong>25</strong> (1982), 257–268. (Godsil–McKay switching, Ch 5.)</li>
+    <li>B. D. McKay, A. Piperno. <em>Practical graph isomorphism, II.</em> J. Symbolic Comput. <strong>60</strong> (2014), 94–112. (<code>nauty</code>, canonical forms.)</li>
+    <li>M. Kirchweger, S. Szeider. <em>SAT modulo symmetries for graph generation.</em> Proc. CP 2021, LIPIcs <strong>210</strong>. (SMS, Ch 4.)</li>
+    <li>M. Kirchweger, S. Szeider. <em>Smart Cubing for Graph Search: A Comparative Study.</em> arXiv:2501.17201 (2025). (Ch 4, §4.3.)</li>
+    <li>The CryptoMiniSat, CaDiCaL and kissat SAT solvers (M. Soos; A. Biere et al.). (Ch 4 back ends.)</li>
+    <li><em>de Caen-style linear $B$-block CEGAR</em> — project method; implementation in the companion repository <code>orbit-gen</code> (<code>src/de_caen.rs</code>), reproducing thesis counts for $\mathrm{SRG}(25,12,5,6)$. (Ch 4, §4.2.)</li>
+</ul>
+
+<h2>B.4 &nbsp; AI-assisted construction</h2>
+
+<ul style="font-family: var(--font-sans); font-size: 0.95em; line-height: 1.5;">
+    <li>F. Charton, J. S. Ellenberg, A. Z. Wagner, G. Williamson. <em>PatternBoost: Constructions in Mathematics with a Little Help from AI.</em> arXiv:2411.00566 (2024). (Transformer warm-start, Ch 6, §6.6.)</li>
+    <li>AlphaEvolve — evolutionary code generation with LLMs (Google DeepMind, 2025). (Ch 7, framework 10.)</li>
+    <li><em>cpro1 / multi-agent debate / MCTS-policy</em> — project frameworks; implementations in <code>orbit-gen/scripts/llm_*.py</code>. (Ch 7.)</li>
+</ul>
+
+<div class="callout warning">
+    <div class="callout-title">Citation hygiene</div>
+    <p>
+    During this project, LLM assistants produced several fabricated or
+    stale citations (a non-existent "Smith–Yang", a misattributed inline
+    reference, a hallucinated date). Every entry above was checked against
+    the arXiv abstract or journal page. Project-internal method names
+    (de Caen-style CEGAR, cpro1) are labelled as such rather than dressed
+    in a false bibliographic citation.
+    </p>
+</div>
+
+<div class="chapter-nav">
+    <a class="prev" href="notation.html">App. A · Notation &amp; Glossary</a>
+    <a class="next" href="../index.html">Title &amp; Contents</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Appendix B · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

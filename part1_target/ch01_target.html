@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1 · The Target — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol>
+        <li><a href="../index.html">Title &amp; Contents</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="ch01_target.html">1. The Target</a></li>
+        <li><a href="ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 1 · Part I</span>
+    The Target
+</h1>
+
+<p class="lead">
+Four numbers — $(37, 18, 8, 9)$ — pin down a graph so rigid that
+once you fix any vertex, the entire local structure is determined. The
+remarkable thing is not that such graphs exist. It is that we cannot
+say how many.
+</p>
+
+<h2>1.1 &nbsp; The definition, in one line</h2>
+
+<p>
+Fix four integers $(n, k, \lambda, \mu)$. A graph $\Gamma$ on $n$
+vertices is <em>strongly regular</em> with these parameters when:
+</p>
+
+<ol>
+    <li>$\Gamma$ is $k$-regular — every vertex has exactly $k$ neighbours;</li>
+    <li>every two <em>adjacent</em> vertices share exactly $\lambda$ common neighbours;</li>
+    <li>every two <em>non-adjacent</em> vertices share exactly $\mu$ common neighbours.</li>
+</ol>
+
+<div class="callout definition">
+    <div class="callout-title">Definition 1.1 — Strongly regular graph</div>
+    <p>
+    A $k$-regular graph $\Gamma$ on $n$ vertices is an
+    $\mathrm{SRG}(n, k, \lambda, \mu)$ if its adjacency matrix $A$
+    satisfies
+    $$ A^2 \;=\; k\,I + \lambda\,A + \mu\,(J - I - A), $$
+    with $I$ the identity and $J$ the all-ones matrix. The $(u,v)$ entry
+    of $A^2$ counts walks of length two; the three regularity conditions
+    are exactly the three cases $u=v$, $u\sim v$, $u\not\sim v$.
+    </p>
+</div>
+
+<p>
+Our target is the single tuple $(n, k, \lambda, \mu) = (37, 18, 8, 9)$:
+$37$ vertices, every vertex of degree $18$, every edge in $8$ triangles,
+every non-edge closed by $9$ common neighbours.
+</p>
+
+<h2>1.2 &nbsp; A graph that exists</h2>
+
+<p>
+Existence is not in doubt. The <em>Paley graph</em> $P(37)$ is an
+$\mathrm{SRG}(37, 18, 8, 9)$: take the vertices to be the integers
+modulo $37$, and join $u \sim v$ exactly when $u - v$ is a nonzero
+quadratic residue (a perfect square) mod $37$. Because
+$37 \equiv 1 \pmod 4$, the residue $-1$ is itself a square, so the
+relation is symmetric and the graph is undirected.
+</p>
+
+<figure>
+    <div id="paley-fig"
+         style="width: 100%; max-width: 520px; height: 520px; margin: 0 auto;"></div>
+    <figcaption>
+        Figure 1.1. &nbsp; The Paley graph $P(37)$, an
+        $\mathrm{SRG}(37,18,8,9)$. Click a vertex to confirm
+        $\deg = 18$; click a second vertex to see the common-neighbour
+        count fall into exactly two values, $8$ (adjacent) and $9$
+        (non-adjacent).
+    </figcaption>
+</figure>
+
+<div class="interactive">
+    <span class="interactive-label">Paley(37) inspector</span>
+    <div class="controls">
+        <button type="button" id="paley-clear">Clear selection</button>
+        <label><input type="checkbox" id="paley-edges" checked> show edges</label>
+    </div>
+    <p style="margin: 0.6em 0 0; font-family: var(--font-mono); font-size: 0.9em;">
+        Selection: <span class="readout" id="paley-readout" style="min-width: 18em; display: inline-block;">none</span>
+    </p>
+    <p style="margin: 0.3em 0 0; font-family: var(--font-mono); font-size: 0.92em;">
+        n = <span class="readout">37</span> &nbsp;
+        k = <span class="readout">18</span> &nbsp;
+        λ = <span class="readout">8</span> &nbsp;
+        μ = <span class="readout">9</span> &nbsp;·&nbsp;
+        <span class="readout" style="color:#2e7d32;">SRG ✓</span>
+    </p>
+</div>
+
+<p>
+So the existence question — <em>is there an</em>
+$\mathrm{SRG}(37, 18, 8, 9)$? — was settled the moment Paley wrote down
+his construction in 1933. Brouwer's parameter table marks the row with a
+<code>+</code>: a graph is known. What the <code>+</code> does
+<em>not</em> tell you is the <em>number</em> of such graphs up to
+isomorphism, and that count is the heart of this book.
+</p>
+
+<h2>1.3 &nbsp; Why $(37, 18, 8, 9)$, and why $\#6803$</h2>
+
+<p>
+$(37, 18, 8, 9)$ is the smallest member of the
+<em>conference-graph</em> family — the parameters
+$\bigl(n, \tfrac{n-1}{2}, \tfrac{n-5}{4}, \tfrac{n-1}{4}\bigr)$ with
+$n \equiv 1 \pmod 4$ — for which the graphs have never been completely
+enumerated. The smaller conference cases are settled: there is a unique
+$\mathrm{SRG}(5,2,0,1)$ (the pentagon), a unique $(9,4,1,2)$
+(the $3\times 3$ rook graph $=P(9)$), a unique $(13,6,2,3)$ ($=P(13)$),
+and exactly $15$ graphs on $(25,12,5,6)$ and $10$ on $(29,14,6,7)$.
+At $n = 37$ the count explodes and the classification breaks down.
+</p>
+
+<p>
+The best published lower bound on that count is $\boldsymbol{6802}$.
+A natural reading of the literature — Spence's $6760$ graphs, plus a
+handful added by later authors — might suggest the list is "essentially
+complete". It is not. As we detail in
+<a href="ch03_catalog.html">Chapter 3</a>, McKay and Spence (2001)
+were explicit that over a million spectrum-compatible candidate
+neighbourhoods were never searched. The honest status is:
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">Status of $(37,18,8,9)$</div>
+    <p>
+    <strong>Existence:</strong> known (Paley$(37)$, since 1933).<br>
+    <strong>Count:</strong> at least $6802$ up to isomorphism;
+    <em>completeness is open</em>.<br>
+    <strong>The hunt:</strong> exhibit a $6803$rd graph — a valid
+    $\mathrm{SRG}(37,18,8,9)$ isomorphic to none of the $6802$ — or
+    accumulate evidence that none exists.
+    </p>
+</div>
+
+<p>
+A $6803$rd graph would be a small, publishable result: a new point in a
+classification that has stood incomplete since 2001. That is the prize
+this book hunts.
+</p>
+
+<h2>1.4 &nbsp; The verifier we will use everywhere</h2>
+
+<p>
+Every construction attempt in Part II ends the same way: build a
+$37 \times 37$ adjacency matrix, then check it. Here is the complete
+test, unchanged for the rest of the book.
+</p>
+
+<pre><code>import numpy as np
+
+def is_srg(A, n=37, k=18, lam=8, mu=9):
+    """True iff A (n×n, 0/1, symmetric, zero diagonal) is SRG(n,k,λ,μ)."""
+    if A.shape != (n, n):          return False
+    if not np.array_equal(A, A.T): return False
+    if np.any(np.diag(A) != 0):    return False
+    if np.any(A.sum(axis=1) != k): return False
+    J = np.ones((n, n), dtype=int)
+    I = np.eye(n,        dtype=int)
+    rhs = k*I + lam*A + mu*(J - I - A)        # A² = kI + λA + μ(J−I−A)
+    return np.array_equal(A @ A, rhs)</code></pre>
+
+<p>
+Passing <code>is_srg</code> is necessary but not sufficient for a
+discovery: a candidate must <em>also</em> be non-isomorphic to all
+$6802$ known graphs. Chapter 3 supplies the second test; together they
+define what "$\#6803$" means.
+</p>
+
+<h2>1.5 &nbsp; What follows</h2>
+
+<p>
+<a href="ch02_spectrum.html">Chapter 2</a> reads the spectrum off the
+parameters and shows why $(37,18,8,9)$ is a conference graph with
+irrational eigenvalues and balanced multiplicities $18 = 18$ — and why
+every classical feasibility filter passes, so non-existence is
+<em>not</em> on the table.
+<a href="ch03_catalog.html">Chapter 3</a> assembles the $6802$-graph
+catalog from its three sources, verifies it against the published
+classifications, and quantifies exactly how much of the search space
+remains untouched. Then Part II opens the hunt.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="../index.html">Title &amp; Contents</a>
+    <a class="next" href="ch02_spectrum.html">Ch 2 · Spectrum &amp; Feasibility</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 1 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- Paley(37) interactive viewer --------------------- */
+(function () {
+    "use strict";
+    const P = 37;
+
+    // Quadratic residues mod 37 (nonzero squares).
+    const QR = new Set();
+    for (let x = 1; x < P; x++) QR.add((x * x) % P);
+
+    // Adjacency: u ~ v iff (u - v) mod P is a nonzero QR.
+    const adj = Array.from({ length: P }, () => new Set());
+    for (let u = 0; u < P; u++) {
+        for (let v = 0; v < P; v++) {
+            if (u === v) continue;
+            if (QR.has(((u - v) % P + P) % P)) adj[u].add(v);
+        }
+    }
+
+    const container = document.getElementById("paley-fig");
+    if (!container) return;
+    const W = 520, H = 520, R = 215, cx = W / 2, cy = H / 2;
+
+    const pos = [];
+    for (let i = 0; i < P; i++) {
+        const a = -Math.PI / 2 + i * 2 * Math.PI / P;
+        pos.push({ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) });
+    }
+
+    const edges = [];
+    for (let u = 0; u < P; u++) for (const v of adj[u]) if (u < v) edges.push([u, v]);
+
+    const svg = d3.select(container).append("svg")
+        .attr("viewBox", `0 0 ${W} ${H}`)
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .style("width", "100%").style("height", "100%");
+
+    const edgesG = svg.append("g")
+        .attr("stroke", "#c9b9a7").attr("stroke-width", 0.5).attr("opacity", 0.55);
+    const nodesG = svg.append("g");
+    const labelsG = svg.append("g")
+        .attr("font-family", "JetBrains Mono, monospace").attr("font-size", 9)
+        .attr("text-anchor", "middle").attr("fill", "#444").attr("pointer-events", "none");
+
+    edgesG.selectAll("line").data(edges).join("line")
+        .attr("x1", d => pos[d[0]].x).attr("y1", d => pos[d[0]].y)
+        .attr("x2", d => pos[d[1]].x).attr("y2", d => pos[d[1]].y);
+
+    nodesG.selectAll("circle").data(d3.range(P)).join("circle")
+        .attr("cx", d => pos[d].x).attr("cy", d => pos[d].y).attr("r", 8)
+        .attr("fill", "#fdfaf4").attr("stroke", "#8b1e3f").attr("stroke-width", 1.6)
+        .style("cursor", "pointer")
+        .on("click", (ev, d) => select(d));
+
+    labelsG.selectAll("text").data(d3.range(P)).join("text")
+        .attr("x", d => pos[d].x).attr("y", d => pos[d].y + 3).text(d => d);
+
+    let selection = [];
+    const readout = document.getElementById("paley-readout");
+
+    function clear() {
+        nodesG.selectAll("circle").attr("fill", "#fdfaf4").attr("stroke", "#8b1e3f");
+        edgesG.selectAll("line").attr("stroke", "#c9b9a7").attr("stroke-width", 0.5).attr("opacity", 0.55);
+    }
+    function hiV(v, c) { nodesG.selectAll("circle").filter(d => d === v).attr("fill", c).attr("stroke", "#111"); }
+    function render() {
+        clear();
+        if (selection.length === 0) { readout.textContent = "none"; return; }
+        if (selection.length === 1) {
+            const v = selection[0];
+            hiV(v, "#8b1e3f");
+            for (const nb of adj[v]) hiV(nb, "#f7d9e0");
+            edgesG.selectAll("line")
+                .filter(d => d[0] === v || d[1] === v)
+                .attr("stroke", "#8b1e3f").attr("stroke-width", 1.4).attr("opacity", 0.9);
+            readout.textContent = `v=${v}  deg=${adj[v].size}  (expect 18)`;
+            return;
+        }
+        const [a, b] = selection;
+        const isEdge = adj[a].has(b);
+        let cn = 0; for (const x of adj[a]) if (adj[b].has(x)) cn++;
+        hiV(a, "#8b1e3f"); hiV(b, "#8b1e3f");
+        for (const x of adj[a]) if (adj[b].has(x)) hiV(x, "#f7d9e0");
+        readout.textContent =
+            `(${a}, ${b}) ${isEdge ? "adjacent → λ" : "non-adjacent → μ"} = ${cn}` +
+            `  (expect ${isEdge ? 8 : 9})`;
+    }
+    function select(v) {
+        if (selection.length === 2) selection = [];
+        selection.push(v);
+        render();
+    }
+
+    document.getElementById("paley-clear").addEventListener("click", () => { selection = []; render(); });
+    document.getElementById("paley-edges").addEventListener("change", e => {
+        edgesG.attr("display", e.target.checked ? null : "none");
+    });
+
+    window.Paley37 = { adj, QR: [...QR].sort((a, b) => a - b) };
+})();
+</script>
+
+</body>
+</html>

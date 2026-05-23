@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 4 · SAT &amp; Constraint Attacks — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 4 · Part II</span>
+    SAT &amp; Constraint Attacks
+</h1>
+
+<p class="lead">
+The most direct attack is to write "$\Gamma$ is an
+$\mathrm{SRG}(37,18,8,9)$" as a Boolean formula and hand it to a
+solver. Four variants were tried, from CEGAR over symmetric seeds to
+cube-and-conquer with a canonicity propagator. All four hit the same
+structural wall — but one of them showed exactly where the wall is thin.
+</p>
+
+<h2>4.1 &nbsp; Encoding an SRG as a formula</h2>
+
+<p>
+Represent the graph by one Boolean variable per potential edge:
+$x_{ij}$ for $0 \le i < j \le 36$, so $\binom{37}{2} = 666$ edge
+variables. The defining conditions become:
+</p>
+
+<ul>
+    <li><strong>Degree.</strong> For each vertex $i$,
+        $\sum_{j \ne i} x_{ij} = 18$ — a cardinality constraint.</li>
+    <li><strong>Common neighbours.</strong> For each pair $(i,j)$,
+        $\sum_{t} x_{it}\,x_{jt} = 8$ if $x_{ij}=1$, else $9$. The product
+        $x_{it}\,x_{jt}$ is an AND that needs an auxiliary variable
+        $y_{ijt}$ with clauses $y \to x_{it}$, $y \to x_{jt}$,
+        $x_{it}\wedge x_{jt}\to y$.</li>
+</ul>
+
+<p>
+The trouble is in the counting. Each of the $666$ pairs needs a
+cardinality constraint over up to $35$ product terms, and each product
+needs its own variable and three clauses. Encoding the cardinalities
+(Sinz sequential counters, or totalizers) multiplies everything again.
+The result is enormous:
+</p>
+
+<div class="callout">
+    <div class="callout-title">Encoding sizes actually observed</div>
+    <p>
+    A Seidel-style direct encoding of $\mathrm{SRG}(37,18,8,9)$:
+    $\approx 110{,}000$ variables, $\approx 230{,}000$ clauses. A
+    <em>neighbour-extension</em> encoding (fix one $(18,8)$ neighbourhood,
+    solve for the rest): $\approx 910{,}000$ variables,
+    $\approx 1{,}870{,}000$ clauses. These are not solver-specific; the
+    same blow-up appears whether the back end is Google OR-Tools CP-SAT or
+    the SAT-competition winner kissat.
+    </p>
+</div>
+
+<h2>4.2 &nbsp; Attack 1 — de Caen survey over symmetric seeds</h2>
+
+<p>
+Rather than solve the full symmetric problem, restrict to graphs sharing
+an automorphism with a known one. For each of the $40$ nontrivial-Aut
+catalog graphs, split at its best vertex (smallest automorphism orbit =
+largest stabiliser), encode de Caen's <em>linear</em> $B$-block
+constraints with an automorphism-aware lex-leader symmetry break, and
+run a CEGAR loop (refine on violated common-neighbour counts) through
+CryptoMiniSat.
+</p>
+
+<table>
+    <thead><tr><th>Budget</th><th>Seeds</th><th>Result</th></tr></thead>
+    <tbody>
+        <tr><td>$180$ s/graph</td><td>$40$</td><td>all time out (Wall A)</td></tr>
+    </tbody>
+</table>
+
+<p>
+Every instance produced the same outcome — no model, no refutation —
+across automorphism products $\{1, 81, 1296\}$, all at the
+$\sim\!110\text{K}$-variable scale. The recommendation for a serious run
+is to push the per-graph budget to $3600$ s or beyond, roughly $40$
+CPU-hours for the full sweep.
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">A correctness trap</div>
+    <p>
+    The tempting "complement-swap" symmetry break (negate $B$ for a
+    self-complementary SRG) is <strong>unsound</strong> unless the chosen
+    self-complementing permutation $\pi$ satisfies $\pi^2 = \mathrm{id}$.
+    For Paley$(37)$, $\pi$ is multiplication by a non-residue and has
+    order $> 2$, so the naive break introduces false fixed-point
+    contradictions. Do not enable it without checking $\pi^2 = \mathrm{id}$.
+    </p>
+</div>
+
+<h2>4.3 &nbsp; Attack 2 — Smart Cubing</h2>
+
+<p>
+The Kirchweger–Szeider <em>Smart Cubing</em> recipe (arXiv:2501.17201)
+reports $4$–$6\times$ speedups on graph-search SAT instances. The
+pipeline: a CaDiCaL <em>prerun</em> with DRAT proof tracing to harvest
+short ($\le 5$-literal) learned clauses; enrich the formula with them;
+an activity-based <em>cuber</em> that emits ${\sim}1024$ cubes; and a
+parallel <em>conquer</em> with kissat workers.
+</p>
+
+<pre><code># Three stages, as run in the hunt
+smart-cube-prerun  --cnf seidel_srg37.cnf --time 600      # DRAT → enriched.cnf
+smart-cube-cuber   --k 10 --drat prerun.drat              # → 1024 cubes
+smart-cube-conquer --workers 6 --time-limit 60            # kissat per cube</code></pre>
+
+<table>
+    <thead><tr><th>Cubes</th><th>Per-cube budget</th><th>Result</th></tr></thead>
+    <tbody>
+        <tr><td>${\sim}1024$</td><td>$60$ s</td><td>all UNKNOWN ($17$ worker-hours, $0$ SAT)</td></tr>
+    </tbody>
+</table>
+
+<p>
+The paper's gains depend on <em>dynamic</em> SAT-modulo-symmetry
+propagation during search. Static automorphism-aware symmetry breaking
+plus post-hoc DRAT-learned clauses does not reproduce it: the cubes are
+no easier than the original formula. This is the key negative lesson of
+the chapter — <em>the symmetry breaking has to be dynamic</em>.
+</p>
+
+<h2>4.4 &nbsp; Attack 3 — SMS+CCL cube-and-conquer (the bright spot)</h2>
+
+<p>
+The dynamic version. SAT modulo symmetry with a <em>complete canonicity
+check</em> (CCL): a C-<code>nauty</code> propagator wired through the
+IPASIR-UP interface adds, mid-search, the clause "this partial
+assignment is not lexicographically minimal in its isomorphism class".
+We attack the equivalent regular two-graph on $38$ vertices, split into
+$2^{5} = 32$ cubes.
+</p>
+
+<table>
+    <thead><tr><th>Cubes</th><th>Result</th><th>Time</th></tr></thead>
+    <tbody>
+        <tr><td>$32$ (cube size 5)</td><td>$28$ UNSAT, $4$ still searching</td><td>$28$ closed in $&lt; 1$ min total</td></tr>
+    </tbody>
+</table>
+
+<p>
+Twenty-eight of thirty-two cubes were refuted almost instantly on a
+desktop — the canonicity propagator prunes isomorphic branches
+brilliantly. Only four "hot-spot" cubes resisted, and the binary's
+<code>--timeout</code> flag was not enforced in that build, so they ran
+unbounded and had to be killed by hand. This is the single most
+promising classical path: the propagator works; it just needs more
+cores and a timeout fix. We return to it in
+<a href="../part3_frontier/ch10_frontier.html">Chapter 10</a>.
+</p>
+
+<h2>4.5 &nbsp; Attack 4 — Neighbour extension</h2>
+
+<p>
+A different framing: take one of the $30{,}122$ unaccounted $(18,8)$
+neighbour graphs from $\S$3.3, fix it as $N(v)$, and ask SAT to fill in
+the remaining $18$ vertices consistently. If any extends, it is almost
+certainly a $\#6803$.
+</p>
+
+<table>
+    <thead><tr><th>Variant</th><th>Budget</th><th>Result</th></tr></thead>
+    <tbody>
+        <tr><td>CP-SAT extension</td><td>$30$ s × $50$ candidates</td><td>$0$ SAT</td></tr>
+        <tr><td>CP-SAT extension</td><td>$300$ s × $10$ candidates</td><td>$0$ SAT</td></tr>
+        <tr><td>kissat-native (910K vars / 1.87M clauses)</td><td>$60$ s × $3$</td><td>$0$ SAT</td></tr>
+    </tbody>
+</table>
+
+<p>
+None decided either way. The extension encoding is so large that a
+minute of solving barely scratches the search tree — neither a model nor
+a proof of its absence emerges. Chapter 8 returns to extension with a
+hand-written backtracker instead of a generic solver.
+</p>
+
+<h2>4.6 &nbsp; The lesson of the family</h2>
+
+<div class="callout theorem">
+    <div class="callout-title">Wall A</div>
+    <p>
+    For $(37,18,8,9)$, generic SAT/CP encodings are dominated by
+    cardinality constraints on common-neighbour counts, producing
+    $10^5$–$10^6$ clauses. At that size the <em>back-end solver is
+    irrelevant</em> — CP-SAT and kissat fail identically. What changes
+    the picture is not a better solver but a better <em>symmetry
+    story</em>: dynamic canonicity propagation (SMS+CCL) closes $88\%$ of
+    the two-graph cubes instantly, while static breaking plus learned
+    clauses (Smart Cubing) closes none.
+    </p>
+</div>
+
+<div class="chapter-nav">
+    <a class="prev" href="../part1_target/ch03_catalog.html">Ch 3 · The 6802-Graph Catalog</a>
+    <a class="next" href="ch05_switching.html">Ch 5 · Combinatorial Switching</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 4 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

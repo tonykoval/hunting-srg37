@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hunting SRG(37) — Print Edition</title>
+<link rel="stylesheet" href="assets/book.css">
+<link rel="stylesheet" href="assets/print.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<style>
+  @media screen {
+    body { background: #eee; }
+    main.chapter { background: white; padding: 3em 3em 4em; margin: 1em auto; max-width: 45rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .print-notice { max-width: 45rem; margin: 1em auto; padding: 1em; background: #fffbe5; border-left: 4px solid #d4a017; }
+  }
+</style>
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="print-notice">
+    <strong>Print edition.</strong> This page is the title, abstract and
+    contents. For a single bound PDF of every chapter, run
+    <code>python scripts/build_print.py</code> to generate
+    <code>print_full.html</code>, then <kbd>Ctrl</kbd>+<kbd>P</kbd> →
+    <em>Save as PDF</em> (A4, margins ~2.5 cm, background graphics off).
+    Individual chapters also print cleanly from the
+    <a href="index.html">table of contents</a>.
+</div>
+
+<main class="chapter" role="main">
+
+    <section class="printed-chapter title-page" style="text-align: center; padding-top: 8rem;">
+        <h1 style="font-size: 2.6rem; margin-bottom: 0.2em; border: none;">Hunting SRG(37)</h1>
+        <p style="font-size: 1.15rem; color: var(--muted); margin: 0;">
+            The Search for a 6803rd Strongly Regular Graph on (37, 18, 8, 9)
+        </p>
+        <p style="margin-top: 4rem; font-size: 1.1rem;">Tony Koval</p>
+        <p style="margin-top: 8rem; font-size: 0.9rem; color: var(--muted);">
+            Content © 2026 CC-BY-4.0 &nbsp;·&nbsp; Code MIT &nbsp;·&nbsp; Version 1.0
+        </p>
+    </section>
+
+    <section class="printed-chapter">
+        <h1 class="chapter-title"><span class="chapter-number">Abstract</span>Front Matter</h1>
+        <p>
+        The strongly regular graph parameters $(37, 18, 8, 9)$ form the
+        smallest conference-graph case that has never been completely
+        classified. A graph exists — the Paley graph $P(37)$ — and the
+        published lower bound on the number of such graphs up to
+        isomorphism is $6802$, the union of Spence (2001),
+        Crnković–Maksimović (2020) and Maksimović–Rukavina (2022). But
+        McKay and Spence (2001) left over a million spectrum-compatible
+        neighbour graphs unsearched, so completeness of the list is
+        <em>open</em>.
+        </p>
+        <p>
+        This book documents twelve attacks, across five families, on the
+        question of whether a $6803$rd graph exists: SAT and constraint
+        solving (CEGAR over symmetric seeds, Smart Cubing, SMS+CCL
+        cube-and-conquer, neighbour extension); Godsil–McKay switching;
+        local and continuous optimisation (basin-hopping, simulated
+        annealing, Euclidean embedding); five large-language-model
+        frameworks; and a purpose-built backtracking extender. Every
+        attack returned zero new graphs.
+        </p>
+        <p>
+        The result is a precise empirical map of the wall: where each
+        method stops, why it stops, and what a serious assault — distributed
+        canonicity-propagated cube-and-conquer, a compiled bitset extender,
+        or a completeness proof — would require. The online edition is
+        interactive (a feasibility calculator, a Paley$(37)$ viewer, an SRG
+        verifier, a live local-search demo, a filterable scoreboard); the
+        print edition is a linear monograph.
+        </p>
+    </section>
+
+    <section class="printed-chapter">
+        <h1 class="chapter-title"><span class="chapter-number">Contents</span>Table of Contents</h1>
+        <h3>Part I — The Target</h3>
+        <ol>
+            <li><a href="part1_target/ch01_target.html">The Target</a></li>
+            <li><a href="part1_target/ch02_spectrum.html">Spectrum &amp; Feasibility</a></li>
+            <li><a href="part1_target/ch03_catalog.html">The 6802-Graph Catalog</a></li>
+        </ol>
+        <h3>Part II — The Hunt</h3>
+        <ol start="4">
+            <li><a href="part2_hunt/ch04_sat.html">SAT &amp; Constraint Attacks</a></li>
+            <li><a href="part2_hunt/ch05_switching.html">Combinatorial Switching</a></li>
+            <li><a href="part2_hunt/ch06_localsearch.html">Local &amp; Continuous Search</a></li>
+            <li><a href="part2_hunt/ch07_llm.html">LLM-Driven Attacks</a></li>
+            <li><a href="part2_hunt/ch08_backtrack.html">Custom Backtracking</a></li>
+        </ol>
+        <h3>Part III — Findings &amp; Frontier</h3>
+        <ol start="9">
+            <li><a href="part3_frontier/ch09_findings.html">Empirical Findings</a></li>
+            <li><a href="part3_frontier/ch10_frontier.html">Breaking the Wall</a></li>
+            <li><a href="part3_frontier/ch11_tools.html">Tools &amp; Reproducibility</a></li>
+        </ol>
+        <h3>Appendices</h3>
+        <ol>
+            <li><a href="appendix/notation.html">Notation &amp; Glossary</a></li>
+            <li><a href="appendix/bibliography.html">Bibliography</a></li>
+        </ol>
+    </section>
+
+</main>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="assets/book.js"></script>
+</body>
+</html>

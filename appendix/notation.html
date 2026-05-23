@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix A · Notation &amp; Glossary — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Appendix A</span>
+    Notation &amp; Glossary
+</h1>
+
+<h2>A.1 &nbsp; Symbols</h2>
+
+<table>
+    <thead><tr><th>Symbol</th><th>Meaning</th></tr></thead>
+    <tbody>
+        <tr><td>$(n, k, \lambda, \mu)$</td><td>SRG parameters: order, degree, edge-common-neighbours, non-edge-common-neighbours</td></tr>
+        <tr><td>$A$</td><td>Adjacency matrix ($0/1$, symmetric, zero diagonal)</td></tr>
+        <tr><td>$I,\ J$</td><td>Identity matrix; all-ones matrix</td></tr>
+        <tr><td>$r,\ s$</td><td>The two non-principal eigenvalues, $r > s$; for the target $\tfrac{-1\pm\sqrt{37}}{2}$</td></tr>
+        <tr><td>$f,\ g$</td><td>Multiplicities of $r,\ s$; for the target $f = g = 18$</td></tr>
+        <tr><td>$N(v)$</td><td>Neighbourhood of $v$; for the target a $(18,8)$-regular graph</td></tr>
+        <tr><td>$c_{ij}$</td><td>Number of common neighbours of $i$ and $j$</td></tr>
+        <tr><td>$\mathrm{viol}(\Gamma)$</td><td>Total deviation of $c_{ij}$ from its target ($8$ on edges, $9$ on non-edges)</td></tr>
+        <tr><td>$|\mathrm{Aut}\,\Gamma|$</td><td>Order of the automorphism group</td></tr>
+        <tr><td>$P(q)$</td><td>Paley graph on $\mathbb{F}_q$, $q \equiv 1 \pmod 4$</td></tr>
+        <tr><td>$\omega$</td><td>Clique number (Hoffman/Delsarte bound $\omega \le 1 - k/s$)</td></tr>
+    </tbody>
+</table>
+
+<h2>A.2 &nbsp; Glossary</h2>
+
+<dl>
+    <p><strong>Strongly regular graph (SRG).</strong> A $k$-regular graph
+    in which adjacent vertices share $\lambda$ and non-adjacent vertices
+    share $\mu$ common neighbours.</p>
+
+    <p><strong>Conference graph.</strong> An SRG with
+    $(n, \tfrac{n-1}{2}, \tfrac{n-5}{4}, \tfrac{n-1}{4})$,
+    $n \equiv 1 \pmod 4$; eigenvalues are irrational and multiplicities
+    equal. The target $(37,18,8,9)$ is the smallest unclassified one.</p>
+
+    <p><strong>Paley graph.</strong> Vertices $\mathbb{F}_q$; $u \sim v$
+    iff $u - v$ is a nonzero square. $P(37)$ is our reference
+    $\mathrm{SRG}(37,18,8,9)$.</p>
+
+    <p><strong>Regular two-graph.</strong> A switching class of graphs
+    encoding an SRG up to Seidel switching; the objects McKay–Spence
+    classify on $36$ and $38$ vertices.</p>
+
+    <p><strong>Godsil–McKay switching.</strong> A local operation on a
+    cell $C$ where every outside vertex sees $0$, half, or all of $C$;
+    produces a cospectral graph. <strong>Seidel switching</strong> is the
+    $|C|=2$ case.</p>
+
+    <p><strong>graph6 (g6).</strong> McKay's compact ASCII encoding of a
+    graph, used for canonical-form comparison.</p>
+
+    <p><strong>Canonical form.</strong> A unique representative of an
+    isomorphism class, computed by <code>nauty</code>; two graphs are
+    isomorphic iff their canonical forms are identical.</p>
+
+    <p><strong>CEGAR.</strong> Counterexample-guided abstraction
+    refinement: solve a relaxed model, find a violated constraint, add it,
+    repeat.</p>
+
+    <p><strong>SMS / CCL.</strong> SAT modulo symmetries; complete
+    canonicity check. A propagator adds, during search, the clause "this
+    partial graph is not lexicographically minimal in its isomorphism
+    class", pruning isomorphic branches dynamically.</p>
+
+    <p><strong>IPASIR-UP.</strong> The solver interface that lets an
+    external propagator (here, C-<code>nauty</code>) inject clauses
+    mid-search — the mechanism behind SMS+CCL.</p>
+
+    <p><strong>Cube-and-conquer.</strong> Split a hard SAT instance into
+    many "cubes" (partial assignments) solved in parallel; effective when
+    a few cubes are hard and most are trivial.</p>
+
+    <p><strong>Partial difference set (PDS).</strong> A subset $D$ of a
+    group $G$ giving a Cayley graph that is strongly regular; an
+    algebraic route to SRG construction.</p>
+
+    <p><strong>Basin-hopping.</strong> Perturb a local optimum, re-optimise,
+    and keep the better basin — a global-search wrapper around local
+    search.</p>
+
+    <p><strong>$\#6803$.</strong> Shorthand for the goal: a valid
+    $\mathrm{SRG}(37,18,8,9)$ isomorphic to none of the $6802$ catalog
+    graphs.</p>
+</dl>
+
+<div class="chapter-nav">
+    <a class="prev" href="../part3_frontier/ch11_tools.html">Ch 11 · Tools &amp; Reproducibility</a>
+    <a class="next" href="bibliography.html">App. B · Bibliography</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Appendix A · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

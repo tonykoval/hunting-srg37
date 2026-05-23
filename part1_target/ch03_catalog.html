@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 3 · The 6802-Graph Catalog — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol>
+        <li><a href="../index.html">Title &amp; Contents</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="ch01_target.html">1. The Target</a></li>
+        <li><a href="ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 3 · Part I</span>
+    The 6802-Graph Catalog
+</h1>
+
+<p class="lead">
+The number $6802$ is not a folklore figure. It is the exact union of
+three published sources, verified graph-by-graph against canonical
+forms. Knowing precisely how it was assembled is what lets us say,
+honestly, how much remains unsearched.
+</p>
+
+<h2>3.1 &nbsp; Three sources, one union</h2>
+
+<p>
+The catalog used throughout this book lives in a single file of $6802$
+canonical graph6 strings,
+<code>out/de_caen/srg37_extended_v2.g6</code>. It is the union of:
+</p>
+
+<table>
+    <thead>
+        <tr><th>Source</th><th>Adds</th><th>Authority</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Spence (2001) baseline</td>
+            <td style="text-align:right">6760</td>
+            <td>Computer classification; file <code>sr371889.g6</code></td>
+        </tr>
+        <tr>
+            <td>Crnković–Maksimović (2020)</td>
+            <td style="text-align:right">+6</td>
+            <td>ADAM, graphs with a $\mathbb{Z}_3$ automorphism</td>
+        </tr>
+        <tr>
+            <td>Maksimović–Rukavina (2022)</td>
+            <td style="text-align:right">+36</td>
+            <td>Descendants of new regular two-graphs on 38 vertices</td>
+        </tr>
+        <tr>
+            <td><strong>Total</strong></td>
+            <td style="text-align:right"><strong>6802</strong></td>
+            <td>Matches Maksimović–Rukavina (2022), Thm 2</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+Assembling the union is not trivial: the later sources overlap the
+Spence baseline in part, so each candidate must be canonicalised (we use
+<code>nauty</code>'s <code>labelg</code>) and deduplicated. The
+Maksimović–Rukavina graphs in particular were hand-extracted from the
+paper's two-graph data and reconstructed via their Seidel switching
+class before canonicalisation. After dedup, the count lands exactly on
+the published $6802$.
+</p>
+
+<h2>3.2 &nbsp; The automorphism landscape</h2>
+
+<p>
+Almost every graph in the catalog is <em>rigid</em> — trivial
+automorphism group. Only $40$ have any symmetry at all, and exactly one
+is highly symmetric: Paley$(37)$, with
+$|\mathrm{Aut}| = 666 = 2 \cdot 9 \cdot 37$.
+</p>
+
+<figure>
+    <div id="aut-fig" style="width:100%; max-width: 560px; height: 300px; margin: 0 auto;"></div>
+    <figcaption>
+        Figure 3.1. &nbsp; Distribution of $|\mathrm{Aut}\,\Gamma|$ across
+        the $6802$ catalog graphs (log scale). The $6762$ rigid graphs
+        dominate; $40$ have nontrivial symmetry; Paley$(37)$ alone has
+        order $666$.
+    </figcaption>
+</figure>
+
+<div class="callout">
+    <div class="callout-title">Automorphism histogram</div>
+    <p>
+    $$ |\mathrm{Aut}| :\quad
+       666^{\,(1)},\;\; 18^{\,(2)},\;\; 9^{\,(4)},\;\;
+       3^{\,(30)},\;\; 2^{\,(3)},\;\; 1^{\,(6762)}. $$
+    The $40$ nontrivial-symmetry graphs ($1 + 2 + 4 + 30 + 3$) are the
+    ones Maksimović–Rukavina classify completely; they are also the
+    natural seeds for the switching and SAT attacks of Part II, because
+    symmetry shrinks the search.
+    </p>
+</div>
+
+<h2>3.3 &nbsp; What "open" really means here</h2>
+
+<p>
+It is tempting to read "$6802$ known, growing slowly" as "basically
+classified". The primary source forbids that reading. McKay and Spence
+(2001), classifying regular two-graphs on $38$ vertices — the objects in
+bijection with the switching classes containing our graphs — were
+explicit that the enumeration of the underlying
+<em>local</em> structures was <strong>not</strong> completed.
+</p>
+
+<p>
+Concretely, fix a vertex $v$ of an $\mathrm{SRG}(37,18,8,9)$. Its
+neighbourhood induces an $18$-vertex graph in which every vertex has
+degree $\lambda = 8$ — an $(18, 8)$-regular graph — and its
+non-neighbourhood induces a related structure. Classifying our SRGs
+amounts to deciding which $(18,8)$ neighbour graphs can be glued into a
+consistent whole. McKay–Spence reported that of the spectrum-compatible
+$(18,8)$ neighbour graphs, only on the order of $10^5$ were accounted
+for, leaving <strong>more than a million unsearched</strong>.
+</p>
+
+<p>
+We reproduced both halves of this statement directly from the catalog:
+</p>
+
+<table>
+    <thead><tr><th>Quantity</th><th>Value</th><th>How obtained</th></tr></thead>
+    <tbody>
+        <tr><td>Distinct canonical $(18,8)$ neighbour graphs in the catalog</td><td style="text-align:right">121,326</td><td>Canonicalise $N(v)$ for all $37$ vertices of all $6802$ graphs</td></tr>
+        <tr><td>Spectrum-compatible $(18,8)$ graphs <em>not</em> in the catalog</td><td style="text-align:right">30,122</td><td>Single $2$-swap perturbation of catalog neighbourhoods, in minutes</td></tr>
+        <tr><td>Of those $30{,}122$, how many appear in the catalog</td><td style="text-align:right">0</td><td>Canonical-form lookup</td></tr>
+    </tbody>
+</table>
+
+<p>
+The second row is the uncomfortable one. In a few minutes of perturbing
+known neighbourhoods we produced thirty thousand $(18,8)$ graphs that
+have the right local spectrum and are <em>not</em> among the catalog's
+neighbourhoods. Each is a potential seed for a graph nobody has written
+down. Whether any of them actually extends to a full
+$\mathrm{SRG}(37,18,8,9)$ is exactly the open question — and, as
+Chapter 8 shows, deciding even one such extension is computationally
+brutal.
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">The honest status, quantified</div>
+    <p>
+    The catalog completeness confidence is low — we estimate
+    $\le 15\%$ that $6802$ is the final count. The frontier is the
+    <strong>trivial-automorphism</strong> graphs: a $6803$rd is most
+    likely rigid, which is exactly why symmetry-exploiting methods
+    (Part II) struggle to reach it.
+    </p>
+</div>
+
+<h2>3.4 &nbsp; What counts as a discovery</h2>
+
+<p>
+A candidate adjacency matrix $A$ is a genuine $\#6803$ if and only if
+<em>both</em> tests pass:
+</p>
+
+<ol>
+    <li><strong>Validity.</strong> <code>is_srg(A, 37, 18, 8, 9)</code>
+    returns <code>True</code> (Chapter 1).</li>
+    <li><strong>Novelty.</strong> The <code>nauty</code> canonical form of
+    $A$ is absent from the $6802$ canonical strings.</li>
+</ol>
+
+<p>
+The browser widget below performs test (1) on anything you paste, and is
+pre-loaded with Paley$(37)$. Test (2) needs the catalog file and
+<code>nauty</code>; the tooling for it is in
+<a href="../part3_frontier/ch11_tools.html">Chapter 11</a>
+(<code>iso-compare</code>, sub-second per candidate).
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">SRG(37,18,8,9) verifier</span>
+    <div class="controls">
+        <label for="vf-fmt">Input:</label>
+        <select id="vf-fmt">
+            <option value="edges">Edge list (u v per line, 0–36)</option>
+            <option value="matrix">37×37 0/1 adjacency rows</option>
+        </select>
+        <button type="button" id="vf-paley">Load Paley(37)</button>
+        <button type="button" id="vf-go">Verify</button>
+    </div>
+    <textarea id="vf-ta" rows="7" style="width:100%; font-family: var(--font-mono); font-size: 0.8em; box-sizing: border-box;"
+placeholder="0 1
+0 3
+..."></textarea>
+    <p style="margin: 0.6em 0 0;">
+        <span class="interactive-label">Result</span>
+        <span class="readout" id="vf-out" style="display:block; min-height:1.3em;">—</span>
+    </p>
+</div>
+
+<h2>3.5 &nbsp; Onward</h2>
+
+<p>
+We now have the target ($\S$1), the spectrum that makes it unkillable
+($\S$2), and a verified baseline of $6802$ graphs with a precisely
+quantified gap above it ($\S$3). Part II opens the assault: twelve
+attacks, five families, one wall.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch02_spectrum.html">Ch 2 · Spectrum &amp; Feasibility</a>
+    <a class="next" href="../part2_hunt/ch04_sat.html">Ch 4 · SAT &amp; Constraint Attacks</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 3 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- Aut histogram (D3 bar chart) --------------------- */
+(function () {
+    "use strict";
+    const data = [
+        { aut: "1", count: 6762 },
+        { aut: "2", count: 3 },
+        { aut: "3", count: 30 },
+        { aut: "9", count: 4 },
+        { aut: "18", count: 2 },
+        { aut: "666", count: 1 },
+    ];
+    const el = document.getElementById("aut-fig");
+    if (!el) return;
+    const W = 560, H = 300, m = { t: 12, r: 16, b: 40, l: 52 };
+    const svg = d3.select(el).append("svg")
+        .attr("viewBox", `0 0 ${W} ${H}`).style("width", "100%").style("height", "100%");
+    const x = d3.scaleBand().domain(data.map(d => d.aut)).range([m.l, W - m.r]).padding(0.25);
+    const y = d3.scaleLog().domain([1, 10000]).range([H - m.b, m.t]);
+    svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x))
+        .append("text").attr("x", (W + m.l) / 2).attr("y", 34).attr("fill", "#444")
+        .attr("font-family", "Inter, sans-serif").attr("font-size", 12).text("|Aut Γ|");
+    svg.append("g").attr("transform", `translate(${m.l},0)`)
+        .call(d3.axisLeft(y).ticks(4, "~s"));
+    svg.append("g").selectAll("rect").data(data).join("rect")
+        .attr("x", d => x(d.aut)).attr("width", x.bandwidth())
+        .attr("y", d => y(d.count)).attr("height", d => H - m.b - y(d.count))
+        .attr("fill", "#8b1e3f");
+    svg.append("g").selectAll("text.lbl").data(data).join("text")
+        .attr("class", "lbl").attr("x", d => x(d.aut) + x.bandwidth() / 2)
+        .attr("y", d => y(d.count) - 4).attr("text-anchor", "middle")
+        .attr("font-family", "JetBrains Mono, monospace").attr("font-size", 11).attr("fill", "#444")
+        .text(d => d.count);
+})();
+
+/* --------------------- SRG verifier --------------------- */
+(function () {
+    "use strict";
+    const N = 37, K = 18, LAM = 8, MU = 9;
+    const $ = id => document.getElementById(id);
+
+    function paley37Edges() {
+        const QR = new Set();
+        for (let x = 1; x < N; x++) QR.add((x * x) % N);
+        const out = [];
+        for (let u = 0; u < N; u++) for (let v = u + 1; v < N; v++)
+            if (QR.has(((u - v) % N + N) % N)) out.push([u, v]);
+        return out;
+    }
+
+    function buildAdjFromEdges(text) {
+        const A = Array.from({ length: N }, () => new Array(N).fill(0));
+        const lines = text.split(/\r?\n/).map(s => s.trim()).filter(s => s && !s.startsWith("#"));
+        for (const line of lines) {
+            const p = line.split(/[\s,]+/).map(Number);
+            if (p.length < 2 || p.some(isNaN)) throw new Error(`bad line: "${line}"`);
+            const [u, v] = p;
+            if (u < 0 || v < 0 || u >= N || v >= N) throw new Error(`vertex out of range 0..36: "${line}"`);
+            if (u === v) continue;
+            A[u][v] = 1; A[v][u] = 1;
+        }
+        return A;
+    }
+    function buildAdjFromMatrix(text) {
+        const rows = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length);
+        if (rows.length !== N) throw new Error(`need ${N} rows, got ${rows.length}`);
+        const A = rows.map(r => {
+            const cells = r.split(/[\s,]*/).join("").split("").map(Number);
+            if (cells.length !== N || cells.some(c => c !== 0 && c !== 1))
+                throw new Error("each row must be 37 chars of 0/1");
+            return cells;
+        });
+        return A;
+    }
+
+    function check(A) {
+        for (let i = 0; i < N; i++) if (A[i][i] !== 0) return "FAIL: nonzero diagonal at " + i;
+        for (let i = 0; i < N; i++) for (let j = 0; j < N; j++)
+            if (A[i][j] !== A[j][i]) return `FAIL: not symmetric at (${i},${j})`;
+        for (let i = 0; i < N; i++) {
+            let d = 0; for (let j = 0; j < N; j++) d += A[i][j];
+            if (d !== K) return `FAIL: vertex ${i} has degree ${d}, expected ${K}`;
+        }
+        for (let i = 0; i < N; i++) for (let j = i + 1; j < N; j++) {
+            let cn = 0; for (let t = 0; t < N; t++) if (A[i][t] && A[j][t]) cn++;
+            const want = A[i][j] ? LAM : MU;
+            if (cn !== want) return `FAIL: pair (${i},${j}) ${A[i][j] ? "adjacent" : "non-adj"} has ${cn} common, expected ${want}`;
+        }
+        return "VALID — this IS an SRG(37,18,8,9). Now run iso-compare (Ch 11) for novelty.";
+    }
+
+    function run() {
+        const out = $("vf-out");
+        try {
+            const txt = $("vf-ta").value;
+            const A = $("vf-fmt").value === "edges" ? buildAdjFromEdges(txt) : buildAdjFromMatrix(txt);
+            const r = check(A);
+            out.textContent = r;
+            out.style.color = r.startsWith("VALID") ? "#2e7d32" : "#b00020";
+        } catch (e) {
+            out.textContent = "parse error: " + e.message;
+            out.style.color = "#b00020";
+        }
+    }
+
+    $("vf-paley").addEventListener("click", () => {
+        $("vf-fmt").value = "edges";
+        $("vf-ta").value = paley37Edges().map(e => e.join(" ")).join("\n");
+        run();
+    });
+    $("vf-go").addEventListener("click", run);
+})();
+</script>
+
+</body>
+</html>

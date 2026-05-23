@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 6 · Local &amp; Continuous Search — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 6 · Part II</span>
+    Local &amp; Continuous Search
+</h1>
+
+<p class="lead">
+Treat "be an SRG" as a cost to minimise and let an optimiser hunt for a
+zero. Three optimisers were tried — greedy basin-hopping, simulated
+annealing, and gradient descent on a geometric embedding. Each found a
+floor it could not cross, and the floor sits far above zero.
+</p>
+
+<h2>6.1 &nbsp; The objective</h2>
+
+<p>
+Work in the space of $18$-regular graphs on $37$ vertices and count
+defects. For every pair $(i,j)$ let $c_{ij}$ be its number of common
+neighbours; the target is $8$ on edges and $9$ on non-edges. The
+<em>violation</em>
+$$ \mathrm{viol}(\Gamma) \;=\;
+   \sum_{i<j} \bigl| c_{ij} - (\text{$8$ if } i\sim j \text{ else } 9) \bigr| $$
+is zero exactly for an $\mathrm{SRG}(37,18,8,9)$. The move that keeps
+$18$-regularity is the <em>$2$-swap</em>: pick edges $\{a,b\},\{c,d\}$
+and non-edges $\{a,d\},\{c,b\}$ and exchange them, leaving every degree
+untouched.
+</p>
+
+<h2>6.2 &nbsp; Watch the floor: live 2-swap descent</h2>
+
+<p>
+The widget below starts from a randomised $18$-regular circulant (high
+violation) and runs $2$-swap hill-climbing in your browser. It converges
+quickly — and then stalls, hundreds of violations short of an SRG. This
+is the floor every local method in this chapter ran into.
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">2-swap hill-climb on SRG(37) violation</span>
+    <div class="controls">
+        <button type="button" id="ls-run">Run descent</button>
+        <button type="button" id="ls-stop">Stop</button>
+        <span style="font-family: var(--font-mono); font-size: 0.9em;">
+            step <span class="readout" id="ls-step">0</span> &nbsp;
+            viol <span class="readout" id="ls-viol">—</span> &nbsp;
+            best <span class="readout" id="ls-best">—</span>
+        </span>
+    </div>
+    <canvas id="ls-canvas" width="640" height="180"
+            style="width:100%; max-width:640px; border:1px solid var(--rule); background:#fff; border-radius:4px;"></canvas>
+    <p style="margin:0.4em 0 0; font-size:0.82em; color:var(--muted); font-family:var(--font-sans);">
+        Trajectory of $\mathrm{viol}$ vs. accepted moves. The plateau —
+        typically a few hundred — is the intrinsic $2$-swap floor; reaching
+        $0$ would be a discovery.
+    </p>
+</div>
+
+<h2>6.3 &nbsp; Attack 7 — catalog-anchored basin-hopping</h2>
+
+<p>
+Instead of cold starts, anchor on the catalog. Take a known graph,
+perturb it by a controlled number of swaps, then run Lin–Kernighan-style
+chained local search (depth $2$) to fall into a nearby basin — hoping the
+basin is a <em>different</em> SRG.
+</p>
+
+<table>
+    <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+    <tbody>
+        <tr><td>Trials × warmstarts × LS iters</td><td>$360 \times 20 \times 5000$ (≈ 2 h)</td></tr>
+        <tr><td>Novel graphs</td><td><strong>0</strong></td></tr>
+        <tr><td>Recovered to the seed graph</td><td>$15$ (4.2%)</td></tr>
+        <tr><td>Stuck above the floor</td><td>$345$ (95.8%)</td></tr>
+    </tbody>
+</table>
+
+<p>
+A separate probe is even more telling: perturb a catalog graph by a few
+$2$-swaps and hill-climb back. With $5$–$8$ swaps the search recovers the
+<em>original</em> graph $6$ times in $20$; at $20$ swaps it escapes the
+basin entirely and never returns to any SRG. The catalog graphs sit in
+narrow, steep basins separated by a high violation ridge — easy to fall
+back into, essentially impossible to hop between.
+</p>
+
+<h2>6.4 &nbsp; Attack 8 — simulated annealing</h2>
+
+<p>
+Annealing should escape the basins greedy search cannot. We ran
+Metropolis SA with deep perturbations ($30$–$60$ swaps) and a geometric
+schedule $T: 8.0 \to 0.005$.
+</p>
+
+<table>
+    <thead><tr><th>Trials × steps</th><th>New graphs</th><th>Best violation</th></tr></thead>
+    <tbody>
+        <tr><td>$120 \times 50{,}000$</td><td>$0$</td><td>$\ge 340$ (all $120$ stuck)</td></tr>
+    </tbody>
+</table>
+
+<p>
+The initial temperature $T = 8$ turned out to be <em>too cold</em>
+relative to the scale of $\Delta\mathrm{viol}$ for a single move, so SA
+behaved like greedy descent and parked at the same floor. An earlier
+six-hour run on a partial-difference-set fitness plateaued analogously at
+$f \approx 1602$. Hotter starts and reheating are untried levers, but the
+basin geometry of $\S$6.3 suggests they would need to be dramatic.
+</p>
+
+<h2>6.5 &nbsp; Attack 9 — continuous embedding</h2>
+
+<p>
+A change of space. The $s$-eigenspace of an
+$\mathrm{SRG}(37,18,8,9)$ gives a unit-vector representation: $37$
+points on a sphere in $\mathbb{R}^{18}$ whose pairwise inner products
+take just two values. Optimise those vectors directly with Adam, driving
+a loss $L_{\text{dist}}$ that rewards the two-distance structure, then
+threshold to a $0/1$ graph.
+</p>
+
+<table>
+    <thead><tr><th>Trials</th><th>$L_{\text{dist}}$</th><th>Violation after binarising</th></tr></thead>
+    <tbody>
+        <tr><td>$70$</td><td>converges to ${\sim}1.5$</td><td>${\sim}1000$</td></tr>
+    </tbody>
+</table>
+
+<p>
+The continuous loss falls nicely; the binarised graph is garbage. The
+gap is the point: a near-miss in $\mathbb{R}^{18}$ does not threshold to
+a near-miss graph, because the SRG constraint is discrete and brittle.
+Closing it would need a straight-through estimator or a catalog-initialised
+warm start — neither tried here.
+</p>
+
+<h2>6.6 &nbsp; The transformer footnote</h2>
+
+<p>
+A learned proposer (a small decoder transformer trained on the catalog,
+in the PatternBoost style) can <em>warm-start</em> local search to a
+slightly better basin: best violation $297$ versus the cold-start floor
+of ${\sim}324$, about $8\%$. But six rounds of iterative PatternBoost
+showed the improvement is stochastic in the band $[284, 299]$ and does
+not trend toward zero. The floor belongs to the $2$-swap move set, not to
+the proposer; a better starting point cannot fix a move set that cannot
+reach the target. (The pure <em>constructive</em> use of language models
+is Chapter 7.)
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Empirical finding</div>
+    <p>
+    Under $2$-swap moves, the $(37,18,8,9)$ violation landscape has a
+    floor of a few hundred that greedy descent, basin-hopping, cold SA,
+    and transformer-warm-started LS all hit and none cross. Catalog graphs
+    occupy isolated steep basins. Continuous relaxation optimises a
+    different objective whose minima do not binarise to SRGs. Local search,
+    at the budgets tried, does not reach $\#6803$.
+    </p>
+</div>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch05_switching.html">Ch 5 · Combinatorial Switching</a>
+    <a class="next" href="ch07_llm.html">Ch 7 · LLM-Driven Attacks</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 6 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- Live 2-swap hill-climb on SRG(37) --------------------- */
+(function () {
+    "use strict";
+    const N = 37, K = 18;
+    const $ = id => document.getElementById(id);
+    const canvas = $("ls-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+
+    // adjacency as boolean rows + edge set
+    let adj, history, best, running = false, step = 0, timer = null;
+
+    function circulantSeed() {
+        // i ~ i±1..±9 (mod 37): 18-regular
+        adj = Array.from({ length: N }, () => new Uint8Array(N));
+        for (let i = 0; i < N; i++)
+            for (let d = 1; d <= 9; d++) {
+                const j = (i + d) % N, h = ((i - d) % N + N) % N;
+                adj[i][j] = 1; adj[j][i] = 1;
+                adj[i][h] = 1; adj[h][i] = 1;
+            }
+    }
+    function commons(i, j) {
+        let c = 0; const ai = adj[i], aj = adj[j];
+        for (let t = 0; t < N; t++) if (ai[t] && aj[t]) c++;
+        return c;
+    }
+    function viol() {
+        let v = 0;
+        for (let i = 0; i < N; i++)
+            for (let j = i + 1; j < N; j++) {
+                const tgt = adj[i][j] ? 8 : 9;
+                v += Math.abs(commons(i, j) - tgt);
+            }
+        return v;
+    }
+    function randInt(n) { return (Math.random() * n) | 0; }
+
+    function trySwap() {
+        // pick edge (a,b) and edge (c,d), with (a,d),(c,b) non-edges, all distinct
+        for (let attempt = 0; attempt < 40; attempt++) {
+            const a = randInt(N);
+            const nbrsA = []; for (let t = 0; t < N; t++) if (adj[a][t]) nbrsA.push(t);
+            const b = nbrsA[randInt(nbrsA.length)];
+            const c = randInt(N);
+            if (c === a || c === b) continue;
+            const nbrsC = []; for (let t = 0; t < N; t++) if (adj[c][t]) nbrsC.push(t);
+            const d = nbrsC[randInt(nbrsC.length)];
+            if (d === a || d === b || d === c) continue;
+            if (adj[a][d] || adj[c][b]) continue;            // need non-edges
+            return [a, b, c, d];
+        }
+        return null;
+    }
+    function applySwap(s, on) {
+        const [a, b, c, d] = s;
+        const e = on ? 1 : 0, ne = on ? 0 : 1;
+        adj[a][b] = ne; adj[b][a] = ne; adj[c][d] = ne; adj[d][c] = ne;
+        adj[a][d] = e;  adj[d][a] = e;  adj[c][b] = e;  adj[b][c] = e;
+    }
+
+    function draw() {
+        const W = canvas.width, H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        if (history.length < 2) return;
+        const maxV = Math.max(...history), minV = 0;
+        ctx.strokeStyle = "#8b1e3f"; ctx.lineWidth = 1.5; ctx.beginPath();
+        for (let i = 0; i < history.length; i++) {
+            const x = (i / (history.length - 1)) * (W - 8) + 4;
+            const y = H - 8 - (history[i] - minV) / (maxV - minV || 1) * (H - 16);
+            i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.fillStyle = "#606060"; ctx.font = "11px monospace";
+        ctx.fillText("max " + maxV, 6, 14);
+        ctx.fillText("0", 6, H - 4);
+    }
+
+    function chunk() {
+        if (!running) return;
+        let cur = viol();
+        for (let it = 0; it < 25; it++) {
+            const s = trySwap();
+            if (!s) continue;
+            const before = cur;
+            applySwap(s, true);
+            const after = viol();
+            if (after <= before) { cur = after; }   // accept improving / equal
+            else { applySwap(s, false); }            // revert
+            step++;
+        }
+        history.push(cur);
+        if (history.length > 320) history.shift();
+        if (cur < best) best = cur;
+        $("ls-step").textContent = step;
+        $("ls-viol").textContent = cur;
+        $("ls-best").textContent = best;
+        draw();
+        if (step < 6000 && cur > 0) timer = setTimeout(chunk, 0);
+        else running = false;
+    }
+
+    function start() {
+        if (running) return;
+        circulantSeed();
+        // randomise away from the structured seed
+        for (let i = 0; i < 4000; i++) { const s = trySwap(); if (s) applySwap(s, true); }
+        history = []; best = Infinity; step = 0; running = true;
+        chunk();
+    }
+    function stop() { running = false; if (timer) clearTimeout(timer); }
+
+    $("ls-run").addEventListener("click", start);
+    $("ls-stop").addEventListener("click", stop);
+})();
+</script>
+
+</body>
+</html>

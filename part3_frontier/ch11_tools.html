@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 11 · Tools &amp; Reproducibility — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 11 · Part III</span>
+    Tools &amp; Reproducibility
+</h1>
+
+<p class="lead">
+Every attack in this book is packaged to re-run. Two Docker images, one
+baked-in catalog, a dozen scripts, and three data files. The standard of
+the project is that any claim here can be checked by pulling an image and
+running one command.
+</p>
+
+<h2>11.1 &nbsp; Docker images</h2>
+
+<table>
+    <thead><tr><th>Image</th><th>Contents</th><th>Use</th></tr></thead>
+    <tbody>
+        <tr>
+            <td><code>tonykoval/srg37-hunt</code></td>
+            <td>Python 3.11 + numpy/networkx, pynauty, nauty CLI, cadical, kissat, cryptominisat5, all hunt scripts, the $6802$ catalog (≈ 820 MB)</td>
+            <td>Every Python attack; verification</td>
+        </tr>
+        <tr>
+            <td><code>tonykoval/de-caen-filter:nauty-ccl</code></td>
+            <td>Rust SMS+CCL two-graph engine with the C-<code>nauty</code> IPASIR-UP propagator</td>
+            <td>Cube-and-conquer ($\S$4.4)</td>
+        </tr>
+    </tbody>
+</table>
+
+<pre><code>docker pull tonykoval/srg37-hunt:latest
+docker run --rm tonykoval/srg37-hunt:latest help        # list subcommands
+# build instead: docker build -f Dockerfile.srg37-hunt -t srg37-hunt .</code></pre>
+
+<p>
+The images are stateless; mount a host <code>out/</code> directory as a
+volume so results survive container exit.
+</p>
+
+<h2>11.2 &nbsp; Subcommands</h2>
+
+<table>
+    <thead><tr><th>Command</th><th>Attack</th><th>Typical time</th></tr></thead>
+    <tbody>
+        <tr><td><code>iso-compare</code></td><td>Verify a candidate vs the catalog (the $\#6803$ test)</td><td>&lt; 1 s</td></tr>
+        <tr><td><code>de-caen-survey</code></td><td>CEGAR over $40$ symmetric seeds ($\S$4.2)</td><td>$180$–$3600$ s/seed</td></tr>
+        <tr><td><code>gm-batch</code> / <code>gm-single</code></td><td>Godsil–McKay switching ($\S$5.2–5.3)</td><td>$140$ s (size 4) → $3$ h (size 8)</td></tr>
+        <tr><td><code>smart-cube-{prerun,cuber,conquer}</code></td><td>Smart Cubing pipeline ($\S$4.3)</td><td>$600$ s prerun + parallel conquer</td></tr>
+        <tr><td><code>gram-psd-filter</code></td><td>Euclidean Gram-PSD neighbour filter ($\S$6.5)</td><td>per-candidate</td></tr>
+        <tr><td><code>--solve-two-graph-canon-cube</code></td><td>SMS+CCL cube (Rust image, $\S$4.4)</td><td>&lt; 1 s – ∞ per cube</td></tr>
+    </tbody>
+</table>
+
+<div class="callout example">
+    <div class="callout-title">The one command that matters most</div>
+    <pre><code># Is this candidate a NEW SRG(37,18,8,9)?
+echo "&lt;g6 string&gt;" | docker run --rm -i tonykoval/srg37-hunt iso-compare -
+#   → "DUPLICATE"   (already among the 6802)
+#   → "*** NOVEL ***"   (a #6803 — verify with is_srg, then publish)</code></pre>
+</div>
+
+<h2>11.3 &nbsp; Data files</h2>
+
+<table>
+    <thead><tr><th>File</th><th>Contents</th></tr></thead>
+    <tbody>
+        <tr><td><code>srg37_extended_v2.g6</code></td><td>The $6802$ canonical catalog graphs (the baseline)</td></tr>
+        <tr><td><code>srg37_nontrivial.g6</code></td><td>The $40$ nontrivial-automorphism graphs (attack seeds)</td></tr>
+        <tr><td><code>catalog_nbhd_full.g6</code></td><td>The $121{,}326$ distinct realised $(18,8)$ neighbourhoods</td></tr>
+        <tr><td><code>unaccounted_big.g6</code></td><td>The $30{,}122$ spectrum-compatible <em>un</em>realised neighbourhoods — extension targets</td></tr>
+    </tbody>
+</table>
+
+<h2>11.4 &nbsp; Scripts</h2>
+
+<p>
+The hunt scripts live in the companion repository's <code>scripts/</code>
+directory. Grouped by chapter:
+</p>
+
+<table>
+    <thead><tr><th>Chapter</th><th>Scripts</th></tr></thead>
+    <tbody>
+        <tr><td>3 — catalog</td><td><code>srg37_iso_compare.py</code>, <code>catalog_neighbour_audit.py</code>, <code>unaccounted_nbhd_generator.py</code></td></tr>
+        <tr><td>4 — SAT</td><td><code>de_caen_general.py</code>, <code>smart_cube_*.py</code>, <code>neighbour_graph_enum.py</code>, <code>extension_kissat.py</code></td></tr>
+        <tr><td>5 — switching</td><td><code>gm_size8_sampled.py</code>, <code>gm_multicell.py</code></td></tr>
+        <tr><td>6 — search</td><td><code>catalog_basin_hop.py</code>, <code>sa_from_catalog.py</code>, <code>sa_adaptive.py</code>, <code>srg37_euclidean_opt.py</code></td></tr>
+        <tr><td>7 — LLM</td><td><code>llm_multiagent_debate.py</code>, <code>llm_pattern_distill.py</code>, <code>llm_tool_agent.py</code>, <code>llm_sat_encoder.py</code>, <code>llm_mcts_search.py</code></td></tr>
+        <tr><td>8 — backtracking</td><td><code>extension_backtrack.py</code> (prototype); Rust extender in <code>orbit-gen</code> v1.0.514</td></tr>
+    </tbody>
+</table>
+
+<h2>11.5 &nbsp; Reproduce a result</h2>
+
+<pre><code># Confirm the catalog baseline (Paley(37) is graph #1, so: DUPLICATE)
+docker run --rm tonykoval/srg37-hunt iso-compare /work/data/sr371889.g6
+
+# Re-run the fast, definitive switching negative (~140 s)
+docker run --rm -v "$(pwd)/out:/work/out" tonykoval/srg37-hunt \
+    gm-batch --cell-sizes 4 --max-per-size 500 --out-dir /work/out/gm
+
+# Generate fresh unaccounted neighbour targets, then attempt extension
+docker run --rm -v "$(pwd)/out:/work/out" tonykoval/srg37-hunt \
+    unaccounted-extension --neighbour-g6 /work/out/unaccounted_big.g6 \
+    --extension-time 1800 --max-graphs 500</code></pre>
+
+<div class="callout warning">
+    <div class="callout-title">A logging caveat learned the hard way</div>
+    <p>
+    Long runs with <code>docker run --rm</code> piped through
+    <code>tee</code> can lose all output if the daemon restarts. Use
+    <code>stdbuf -oL</code> or a direct redirect to a mounted file —
+    nine hours of compute were lost once to exactly this.
+    </p>
+</div>
+
+<h2>11.6 &nbsp; The standing invitation</h2>
+
+<p>
+The catalog, the unaccounted targets, and every attack are public. If you
+run path 1 or path 2 of <a href="ch10_frontier.html">Chapter 10</a> and
+<code>iso-compare</code> prints <strong>*** NOVEL ***</strong>, you have
+found the $6803$rd strongly regular graph on $37$ vertices. That is the
+whole point of writing it all down.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch10_frontier.html">Ch 10 · Breaking the Wall</a>
+    <a class="next" href="../appendix/notation.html">App. A · Notation &amp; Glossary</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 11 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

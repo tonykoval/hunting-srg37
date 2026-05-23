@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 9 · Empirical Findings — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 9 · Part III</span>
+    Empirical Findings
+</h1>
+
+<p class="lead">
+Twelve attacks, five families, zero new graphs. That sentence is the
+headline result — but the value is in the five precise statements the
+hunt can now stand behind, and the one boundary it carefully does
+<em>not</em> cross.
+</p>
+
+<h2>9.1 &nbsp; The headline</h2>
+
+<div class="callout">
+    <div class="callout-title">Result</div>
+    <p>
+    Across every attack in Part II — SAT/CEGAR/cube-and-conquer,
+    Godsil–McKay switching, basin-hopping / simulated annealing /
+    Euclidean embedding, five LLM frameworks, and a backtracking extender
+    — <strong>no $\mathrm{SRG}(37,18,8,9)$ outside the $6802$-graph
+    catalog was found</strong>. The catalog is empirically closed under
+    all classical attack families at single-machine, one-day compute
+    budgets.
+    </p>
+</div>
+
+<h2>9.2 &nbsp; Five things we can now assert</h2>
+
+<h3>1. The catalog is correctly assembled.</h3>
+<p>
+The $6802$ count reproduces, graph-for-graph under canonical form, the
+union of Spence (2001), Crnković–Maksimović (2020) and
+Maksimović–Rukavina (2022). The automorphism histogram
+$\{666^1, 18^2, 9^4, 3^{30}, 2^3, 1^{6762}\}$ matches the published
+$40$ nontrivial-symmetry graphs exactly. Whatever else is uncertain, the
+baseline is sound.
+</p>
+
+<h3>2. McKay–Spence's "million unsearched" is real, not rhetorical.</h3>
+<p>
+In minutes we produced $30{,}122$ spectrum-compatible $(18,8)$ neighbour
+graphs by single $2$-swaps of catalog neighbourhoods, none of which
+appears among the catalog's $121{,}326$ realised neighbourhoods. The
+unexplored region is concrete and easy to enter; it is only
+<em>deciding</em> its members that is hard.
+</p>
+
+<h3>3. Extension is intractable for generic solvers.</h3>
+<p>
+Sixty unaccounted neighbour graphs, each given $30$–$300$ s of CP-SAT or
+kissat, produced neither a model nor a refutation. The
+$910\text{K}$-variable extension encoding is simply too large for a
+generic solver to make measurable progress in minutes.
+</p>
+
+<h3>4. LLMs cannot construct at this precision.</h3>
+<p>
+The best explicit graph any framework produced had violation $1148$,
+worse than a random $18$-regular graph; the only zero-violation outputs
+were rediscoveries of Paley$(37)$. The $(37,18,8,9)$ axioms are too tight
+for one-shot generation.
+</p>
+
+<h3>5. The catalog graphs are rigid under small perturbation.</h3>
+<p>
+$2$-swap local search, size-$\le 12$ Godsil–McKay switching, Seidel pair
+switching, and de Caen CEGAR at $180$ s per seed all leave the catalog
+exactly where it was. The known graphs sit in narrow, steep, isolated
+basins.
+</p>
+
+<h2>9.3 &nbsp; The boundary we do not cross</h2>
+
+<div class="callout warning">
+    <div class="callout-title">What this is <em>not</em></div>
+    <p>
+    This is <strong>not</strong> a proof that the catalog is complete.
+    The million-plus unaccounted $(18,8)$ neighbour graphs genuinely exist
+    and remain undecided; we sampled $30{,}122$ of them and tested none to
+    completion. A single one that extends would overturn the headline.
+    What the hunt establishes is a <em>robust empirical baseline</em>: at
+    one-machine, one-day budgets, the catalog is closed under every
+    classical method we know.
+    </p>
+</div>
+
+<p>
+Two honest readings remain open, and the hunt does not adjudicate between
+them:
+</p>
+
+<ul>
+    <li><strong>$\#6803$ exists and is rigid.</strong> The completeness
+    confidence is low ($\le 15\%$), and a trivial-automorphism graph would
+    be invisible to every symmetry-exploiting method here. This is the
+    frontier <a href="ch10_frontier.html">Chapter 10</a> targets.</li>
+    <li><strong>$6802$ is final.</strong> The uniform failure across five
+    independent families is weak evidence for completeness — publishable
+    as a negative result, but not a proof.</li>
+</ul>
+
+<h2>9.4 &nbsp; Why every family failed, in one line each</h2>
+
+<table>
+    <thead><tr><th>Family</th><th>Why it bounced</th></tr></thead>
+    <tbody>
+        <tr><td>SAT / CP</td><td>Common-neighbour cardinalities blow the encoding to $10^5$–$10^6$ clauses; solver choice is irrelevant.</td></tr>
+        <tr><td>Switching</td><td>The half-condition $\deg(y,C)\in\{0,|C|/2,|C|\}$ almost never holds on a primitive half-density graph.</td></tr>
+        <tr><td>Local search</td><td>The $2$-swap landscape has a violation floor of a few hundred; basins are isolated.</td></tr>
+        <tr><td>LLM</td><td>The model recalls Paley or emits noise; it cannot satisfy $666$ coupled constraints in one shot.</td></tr>
+        <tr><td>Backtracking</td><td>Right shape, wrong constant: Python at $220$ nodes/s cannot traverse the tree.</td></tr>
+    </tbody>
+</table>
+
+<p>
+Each failure points at its own remedy — more cores and dynamic symmetry
+for SAT, a compiled extender for backtracking, a verifier-coupled policy
+for the model. <a href="ch10_frontier.html">Chapter 10</a> turns the
+remedies into a plan.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="../part2_hunt/ch08_backtrack.html">Ch 8 · Custom Backtracking</a>
+    <a class="next" href="ch10_frontier.html">Ch 10 · Breaking the Wall</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 9 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

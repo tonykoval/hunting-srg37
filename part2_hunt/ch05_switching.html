@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 5 · Combinatorial Switching — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 5 · Part II</span>
+    Combinatorial Switching
+</h1>
+
+<p class="lead">
+Switching takes a graph you have and produces a cospectral one you may
+not. Because cospectral SRGs are again SRGs with identical parameters,
+switching is the classic way to walk between graphs in a single
+parameter set — when it applies. On $(37,18,8,9)$ it almost never does.
+</p>
+
+<h2>5.1 &nbsp; Godsil–McKay switching</h2>
+
+<div class="callout definition">
+    <div class="callout-title">Definition 5.1 — GM switching set</div>
+    <p>
+    Let $\Gamma$ have vertex set $V$. A <em>Godsil–McKay switching set</em>
+    is a subset $C \subseteq V$ such that for every vertex
+    $y \in V \setminus C$,
+    $$ \deg(y, C) \;\in\; \{\,0,\; \tfrac{|C|}{2},\; |C|\,\}, $$
+    i.e. $y$ is joined to none, exactly half, or all of $C$. Switching
+    replaces the edges between $C$ and each "half" vertex $y$ by their
+    complement. The result is cospectral with $\Gamma$; if $\Gamma$ is an
+    SRG, so is the switched graph, with the same parameters.
+    </p>
+</div>
+
+<p>
+If a switching set exists and the switched graph is non-isomorphic to
+every catalog graph, you have a discovery — for free, no search.
+Seidel's two-graph switching is the $|C| = 2$ special case, and it is in
+this language that the regular two-graphs on $38$ vertices (Chapter 4)
+live. The hope: some catalog graph has a switching set leading out of
+the catalog.
+</p>
+
+<h2>5.2 &nbsp; Attack 5 — single-cell switching</h2>
+
+<p>
+For Paley$(37)$ and all $40$ nontrivial-automorphism catalog graphs, we
+searched for switching sets $C$ of even sizes $4, 6, 8, 10, 12$, applied
+the switch, canonicalised, and compared to the catalog.
+</p>
+
+<table>
+    <thead><tr><th>Cell size $|C|$</th><th>Search</th><th>Valid sets found</th><th>New graphs</th></tr></thead>
+    <tbody>
+        <tr><td>$4$</td><td>exhaustive, $40$ graphs, $138$ s</td><td>$0$</td><td>$0$</td></tr>
+        <tr><td>$6$</td><td>sampled, ${\sim}20$ min</td><td>$0$</td><td>$0$</td></tr>
+        <tr><td>$8, 10, 12$</td><td>sampled, millions of subsets</td><td>$0$</td><td>$0$</td></tr>
+    </tbody>
+</table>
+
+<p>
+The result is stark: <strong>no valid switching set of any tested size
+exists</strong>, on any catalog graph sampled. The condition
+$\deg(y, C) \in \{0, |C|/2, |C|\}$ has to hold simultaneously for all
+$37 - |C|$ outside vertices, and on a graph this uniformly knit, some
+vertex always lands at an intermediate degree like $1, 3$ or $5$. The
+regularity that defines the graph is exactly what forbids the switch.
+</p>
+
+<h2>5.3 &nbsp; Attack 6 — multi-cell switching</h2>
+
+<p>
+GM switching also works with a partition into several cells, each
+independently satisfying the half-condition. We tried two-cell partitions
+of sizes $(4,4)$, $(4,6)$ and $(6,6)$ across $20$ catalog SRGs, with
+$50{,}000$ random samples per configuration.
+</p>
+
+<table>
+    <thead><tr><th>Cell sizes</th><th>Samples</th><th>Valid cell pairs</th></tr></thead>
+    <tbody>
+        <tr><td>$(4,4)$</td><td>$50{,}000$</td><td>$0$</td></tr>
+        <tr><td>$(4,6)$</td><td>$50{,}000$</td><td>$0$</td></tr>
+        <tr><td>$(6,6)$</td><td>$50{,}000$</td><td>$0$</td></tr>
+    </tbody>
+</table>
+
+<p>
+Multi-cell is <em>more</em> restrictive, not less: every cell must
+satisfy the half-condition, so requiring two at once compounds the
+rarity. Seidel pair switching (the $|C| = 2$ case) likewise yielded $0$
+new graphs.
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">Why switching fails here</div>
+    <p>
+    A useful intuition: switching sets are abundant in <em>sparse</em> or
+    <em>highly imprimitive</em> graphs, where many vertices see a cell
+    "all-or-nothing". An $\mathrm{SRG}(37,18,8,9)$ is the opposite —
+    primitive, half-density ($k = (n-1)/2$), and rigid. The defining
+    arithmetic ($\lambda = 8$, $\mu = 9$) pins inter-cell degrees to
+    values that are almost never exactly $0$, $|C|/2$, or $|C|$ for all
+    outside vertices at once.
+    </p>
+</div>
+
+<h2>5.4 &nbsp; Verdict</h2>
+
+<div class="callout theorem">
+    <div class="callout-title">Empirical finding</div>
+    <p>
+    $\mathrm{SRG}(37,18,8,9)$ catalog graphs are <em>rigid under
+    small-cell Godsil–McKay switching</em>: no valid single cell of size
+    $\le 12$ and no valid two-cell partition of sizes up to $(6,6)$ was
+    found across the symmetric catalog graphs and millions of samples.
+    Switching, the cheapest route to a sibling graph, is closed at these
+    scales. Larger cells ($|C| \ge 14$) are combinatorially explosive and
+    were not exhausted — a possible but expensive frontier.
+    </p>
+</div>
+
+<p>
+Switching assumed we could move <em>between</em> nearby graphs. The next
+chapter drops that assumption and searches the space of all
+$0/1$ matrices directly, by optimisation.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch04_sat.html">Ch 4 · SAT &amp; Constraint Attacks</a>
+    <a class="next" href="ch06_localsearch.html">Ch 6 · Local &amp; Continuous Search</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 5 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

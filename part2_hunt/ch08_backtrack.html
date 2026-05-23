@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 8 · Custom Backtracking — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 8 · Part II</span>
+    Custom Backtracking
+</h1>
+
+<p class="lead">
+A generic SAT solver wastes most of its effort on bookkeeping a
+problem-specific search can skip. The last attack drops the solver and
+extends a fixed neighbourhood by hand, with SRG-aware propagation — fast
+in principle, brutal in practice.
+</p>
+
+<h2>8.1 &nbsp; The extension problem, restated</h2>
+
+<p>
+From Chapter 3: fix a vertex $v$ and an $(18,8)$-regular graph $H$ as its
+neighbourhood $N(v)$. The remaining $18$ vertices form the
+non-neighbourhood; every edge among the $36$ non-$v$ vertices is either
+forced or free, subject to:
+</p>
+
+<ul>
+    <li>every vertex has degree $18$;</li>
+    <li>every edge lies in exactly $8$ triangles;</li>
+    <li>every non-edge has exactly $9$ common neighbours.</li>
+</ul>
+
+<p>
+Deciding whether a given $H$ extends to a full
+$\mathrm{SRG}(37,18,8,9)$ is the atomic question. If even one of the
+$30{,}122$ unaccounted $H$ from $\S$3.3 extends, that extension is a
+$\#6803$.
+</p>
+
+<h2>8.2 &nbsp; The backtracker</h2>
+
+<p>
+Order the undecided cells, branch on edge / non-edge, and propagate
+aggressively after every assignment. The two SRG-specific propagators do
+the real work:
+</p>
+
+<pre><code># sketch — extend a fixed neighbourhood H to a full SRG(37,18,8,9)
+def extend(state):
+    if not propagate(state):       # degree saturation + CN bounds
+        return None                # dead end
+    cell = pick_cell(state)        # fail-first: most-constrained pair
+    if cell is None:
+        return state if is_srg(state.A) else None
+    for val in (1, 0):             # try edge, then non-edge
+        child = assign(state, cell, val)
+        result = extend(child)
+        if result is not None:
+            return result
+    return None
+
+def propagate(state):
+    # 1. Degree saturation: if a vertex already has 18 neighbours,
+    #    all its remaining cells are forced to 0; if it needs all
+    #    remaining cells to reach 18, force them to 1.
+    # 2. Common-neighbour bounds: for each decided pair (i,j) with
+    #    target t in {8,9}, the count of *possible* common neighbours
+    #    must stay >= t and the count of *certain* ones <= t.
+    return not contradiction</code></pre>
+
+<p>
+The CN bound is the strong one: as cells are fixed, every pair's
+achievable common-neighbour interval $[\,\text{certain},\,\text{certain}
++ \text{possible}\,]$ tightens, and any pair whose interval excludes its
+target $8$ or $9$ prunes the branch immediately.
+</p>
+
+<h2>8.3 &nbsp; Attack 13 — what it cost</h2>
+
+<table>
+    <thead><tr><th>Implementation</th><th>Throughput</th><th>Result on one catalog-extending $H$</th></tr></thead>
+    <tbody>
+        <tr><td>Python prototype</td><td>${\sim}220$ nodes/s</td><td>$30$ s, did not complete the extension</td></tr>
+        <tr><td>kissat-native CNF</td><td>—</td><td>intractable (Ch 4, $\S$4.5)</td></tr>
+        <tr><td>Rust + bitset propagation</td><td>orders of magnitude faster</td><td>in progress; full extension still hard</td></tr>
+    </tbody>
+</table>
+
+<p>
+The Python prototype settles the feasibility of <em>Python</em>, not of
+the method: at $220$ nodes per second, against a search tree with
+hundreds of free cells, even a known-good $H$ (one we lifted from a
+catalog graph, so we <em>know</em> it extends) did not finish in $30$
+seconds. The constant factor is everything. Re-encoding the same search
+into kissat did not help — that is the $910\text{K}$-variable wall of
+$\S$4.5.
+</p>
+
+<h2>8.4 &nbsp; The Rust port</h2>
+
+<p>
+The natural fix is a compiled backtracker with the partial assignment
+held in $64$-bit word bitsets, so propagation is bit-parallel:
+neighbourhood intersections (for common-neighbour counts) become
+<code>popcount(adj[i] &amp; adj[j])</code>, and degree saturation is a
+masked word scan. This is the production path begun in the companion
+repository (<code>orbit-gen</code> v1.0.514). It lifts throughput by
+orders of magnitude — enough to make scanning thousands of unaccounted
+$H$ per CPU-day plausible — but a single full extension of a generic
+rigid $H$ remains genuinely hard, because the tree is enormous even with
+strong pruning.
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Empirical finding</div>
+    <p>
+    Purpose-built extension backtracking is the right shape of attack —
+    SRG-aware propagation prunes far more than a generic solver — but it
+    is constant-factor-bound. Python is hopeless at $220$ nodes/s; a Rust
+    bitset implementation is the credible vehicle, and is the single most
+    actionable next step (<a href="../part3_frontier/ch10_frontier.html">Chapter
+    10</a>). With $30{,}122$ concrete candidate neighbourhoods already in
+    hand, this is the attack most likely to either find $\#6803$ or
+    start ruling candidates out one by one.
+    </p>
+</div>
+
+<p>
+That closes the twelve attacks. Part III tallies what they collectively
+established, and what a winning assault would actually require.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch07_llm.html">Ch 7 · LLM-Driven Attacks</a>
+    <a class="next" href="../part3_frontier/ch09_findings.html">Ch 9 · Empirical Findings</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 8 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

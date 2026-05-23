@@ -333,7 +333,7 @@ attacks, five families, one wall.
         const rows = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length);
         if (rows.length !== N) throw new Error(`need ${N} rows, got ${rows.length}`);
         const A = rows.map(r => {
-            const cells = r.split(/[\s,]*/).join("").split("").map(Number);
+            const cells = r.replace(/[\s,]+/g, "").split("").map(Number);
             if (cells.length !== N || cells.some(c => c !== 0 && c !== 1))
                 throw new Error("each row must be 37 chars of 0/1");
             return cells;

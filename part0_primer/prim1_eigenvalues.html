@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0.1 Eigenvalues &amp; Eigenvectors — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 0.1 · Part 0 — Math for Dummies</span>
+    Eigenvalues &amp; Eigenvectors
+</h1>
+
+<p class="lead">
+This short part exists so the rest of the book is self-contained. If you
+already know what eigenvalues, the spectrum, and the trace are, skip
+straight to <a href="../part1_target/ch01_target.html">Chapter 1</a>.
+Otherwise, three gentle chapters and you will have everything Chapter 2
+needs.
+</p>
+
+<h2>0.1.1 &nbsp; A matrix is a machine that moves vectors</h2>
+
+<p>
+A <em>vector</em> is just an arrow from the origin — a list of numbers,
+like $\binom{3}{1}$ for "3 right, 1 up". A <em>matrix</em> is a square
+table of numbers, and its one job is to <strong>take a vector in and
+hand a (usually different) vector out</strong>. You feed $v$ in, you get
+$Av$ out. That output is computed by the rule "row by column":
+$$ \begin{pmatrix} a & b \\ c & d \end{pmatrix}
+   \begin{pmatrix} x \\ y \end{pmatrix}
+   = \begin{pmatrix} ax + by \\ cx + dy \end{pmatrix}. $$
+</p>
+
+<p>
+For a graph, the matrix we care about is the <em>adjacency matrix</em>
+$A$: a grid of $0$s and $1$s with a $1$ in row $i$, column $j$ exactly
+when vertices $i$ and $j$ are joined. Everything this book does with
+graphs, it does by studying what their adjacency matrix does to vectors.
+</p>
+
+<p>
+Geometrically, multiplying by a matrix usually does two things at once:
+it <strong>rotates</strong> the arrow to point somewhere new, and it
+<strong>stretches or shrinks</strong> its length. For most input arrows,
+both happen.
+</p>
+
+<h2>0.1.2 &nbsp; Eigenvectors: the arrows that refuse to turn</h2>
+
+<p>
+A few special arrows are different. For them the matrix does
+<em>not</em> rotate the arrow at all — it only stretches it (or flips it
+around). The arrow comes out pointing along the very same line it went
+in on. Such an arrow is called an <strong>eigenvector</strong>, and the
+amount it gets stretched by is its <strong>eigenvalue</strong>.
+</p>
+
+<div class="callout definition">
+    <div class="callout-title">Definition — eigenvalue &amp; eigenvector</div>
+    <p>
+    A nonzero vector $v$ is an <em>eigenvector</em> of the matrix $A$ if
+    $$ A\,v \;=\; \lambda\, v $$
+    for some number $\lambda$, called the corresponding
+    <em>eigenvalue</em>. In words: "$A$ applied to $v$ is just $v$
+    scaled by $\lambda$." A positive $\lambda$ stretches, a $\lambda$
+    between $0$ and $1$ shrinks, a negative $\lambda$ flips, and
+    $\lambda = 0$ collapses $v$ onto the origin.
+    </p>
+</div>
+
+<h2>0.1.3 &nbsp; See it: sweep an arrow and watch its image</h2>
+
+<p>
+Below, the blue arrow $v$ is a unit vector you can rotate with the
+slider. The red arrow is its image $Av$. For most angles the red arrow
+points somewhere unrelated to the blue one. At exactly two special
+angles — the dashed lines — the red arrow lies <em>right on top of</em>
+the blue line: those are the eigenvectors, and the red arrow's length
+there is the eigenvalue.
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">2×2 eigenvector explorer (symmetric matrix)</span>
+    <div class="controls">
+        <label>a <input type="number" id="ev-a" value="2" step="0.5" style="width:4em"></label>
+        <label>b <input type="number" id="ev-b" value="1" step="0.5" style="width:4em"></label>
+        <label>c <input type="number" id="ev-c" value="2" step="0.5" style="width:4em"></label>
+        <span style="font-family:var(--font-mono); font-size:0.85em;">A = [[a, b], [b, c]]</span>
+    </div>
+    <div class="controls">
+        <label>angle θ <input type="range" id="ev-theta" min="0" max="360" value="20" style="vertical-align:middle"></label>
+        <button type="button" id="ev-spin">▶ spin</button>
+        <button type="button" id="ev-snap">snap to eigenvector</button>
+    </div>
+    <canvas id="ev-canvas" width="360" height="360"
+            style="width:100%; max-width:360px; border:1px solid var(--rule); background:#fff; border-radius:4px; display:block; margin:0.4em auto;"></canvas>
+    <p style="margin:0.3em 0 0; font-family: var(--font-mono); font-size:0.9em; text-align:center;">
+        eigenvalues: <span class="readout" id="ev-vals">—</span> &nbsp;·&nbsp;
+        <span class="readout" id="ev-aligned">—</span>
+    </p>
+</div>
+
+<h2>0.1.4 &nbsp; Finding them by hand</h2>
+
+<p>
+$Av = \lambda v$ rearranges to $(A - \lambda I)v = 0$, where $I$ is the
+identity matrix (1s on the diagonal, 0s elsewhere — the "do nothing"
+matrix). A nonzero $v$ can satisfy this only when $A - \lambda I$ is
+<em>singular</em>, i.e. its determinant is zero. That gives the
+<em>characteristic equation</em>. For a $2\times 2$ matrix
+$\bigl(\begin{smallmatrix} a & b \\ b & c \end{smallmatrix}\bigr)$ it is
+just a quadratic:
+$$ \det\!\begin{pmatrix} a-\lambda & b \\ b & c-\lambda \end{pmatrix}
+   = \lambda^2 - (a+c)\lambda + (ac - b^2) = 0. $$
+</p>
+
+<div class="callout example">
+    <div class="callout-title">Worked: $A = \bigl(\begin{smallmatrix} 2 & 1 \\ 1 & 2 \end{smallmatrix}\bigr)$</div>
+    <p>
+    The equation is $\lambda^2 - 4\lambda + 3 = 0$, i.e.
+    $(\lambda - 3)(\lambda - 1) = 0$, so $\lambda = 3$ or $\lambda = 1$.
+    The eigenvector for $\lambda = 3$ is $\binom{1}{1}$ (check:
+    $A\binom{1}{1} = \binom{3}{3} = 3\binom{1}{1}$); for $\lambda = 1$ it
+    is $\binom{1}{-1}$. Two perpendicular directions, each merely scaled.
+    Set $a=c=2,\ b=1$ in the explorer above to watch exactly this.
+    </p>
+</div>
+
+<h2>0.1.5 &nbsp; Why this is the whole game for SRGs</h2>
+
+<p>
+Here is the punchline that powers the entire book. A graph is
+<em>strongly regular</em> if and only if its adjacency matrix has
+<strong>only three different eigenvalues</strong>. Three numbers, no
+matter how many vertices. For our target $\mathrm{SRG}(37,18,8,9)$ those
+three are $18$ and the two roots of a quadratic
+(<a href="../part1_target/ch02_spectrum.html">Chapter 2</a>). An ordinary
+$37$-vertex graph would have up to $37$ scattered eigenvalues; the
+strong regularity crushes them down to three. That collapse is the
+structure we exploit — and the thing every attack in Part II is
+ultimately fighting.
+</p>
+
+<p>
+Next we collect <em>all</em> the eigenvalues of a matrix into one object,
+the <a href="prim2_spectrum.html">spectrum</a>.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="../index.html">Title &amp; Contents</a>
+    <a class="next" href="prim2_spectrum.html">0.2 · The Spectrum</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 0.1 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- 2x2 symmetric eigenvector explorer --------------------- */
+(function () {
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const canvas = $("ev-canvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = 360, H = 360, cx = W / 2, cy = H / 2;
+    let spinning = false, raf = null;
+
+    function mat() {
+        return [
+            [parseFloat($("ev-a").value) || 0, parseFloat($("ev-b").value) || 0],
+            [parseFloat($("ev-b").value) || 0, parseFloat($("ev-c").value) || 0],
+        ];
+    }
+    function eig2(A) {
+        const a = A[0][0], b = A[0][1], c = A[1][1];
+        const m = (a + c) / 2, R = Math.sqrt(((a - c) / 2) ** 2 + b * b);
+        const l1 = m + R, l2 = m - R;
+        const dir = l => {
+            if (Math.abs(b) > 1e-9) { const v = [b, l - a]; const n = Math.hypot(...v); return [v[0] / n, v[1] / n]; }
+            return Math.abs(l - a) < 1e-9 ? [1, 0] : [0, 1];
+        };
+        return { l1, l2, d1: dir(l1), d2: dir(l2) };
+    }
+    function arrow(x1, y1, x2, y2, color, width) {
+        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
+        ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        const ang = Math.atan2(y2 - y1, x2 - x1), h = 9;
+        ctx.beginPath(); ctx.moveTo(x2, y2);
+        ctx.lineTo(x2 - h * Math.cos(ang - 0.4), y2 - h * Math.sin(ang - 0.4));
+        ctx.lineTo(x2 - h * Math.cos(ang + 0.4), y2 - h * Math.sin(ang + 0.4));
+        ctx.closePath(); ctx.fill();
+    }
+    function draw() {
+        const A = mat(), e = eig2(A);
+        const maxAbs = Math.max(1.2, Math.abs(e.l1), Math.abs(e.l2));
+        const s = 140 / maxAbs;                       // world units -> px
+        const th = parseFloat($("ev-theta").value) * Math.PI / 180;
+        const v = [Math.cos(th), Math.sin(th)];
+        const Av = window.LinAlg.matVec(A, v);
+        const toX = wx => cx + wx * s, toY = wy => cy - wy * s;
+
+        ctx.clearRect(0, 0, W, H);
+        // axes + unit circle
+        ctx.strokeStyle = "#e6ddcc"; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(W, cy); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, s, 0, 2 * Math.PI); ctx.stroke();
+        // eigen-direction lines (dashed)
+        ctx.setLineDash([5, 4]); ctx.strokeStyle = "#8e24aa"; ctx.lineWidth = 1.2;
+        for (const d of [e.d1, e.d2]) {
+            ctx.beginPath();
+            ctx.moveTo(toX(-d[0] * maxAbs), toY(-d[1] * maxAbs));
+            ctx.lineTo(toX(d[0] * maxAbs), toY(d[1] * maxAbs));
+            ctx.stroke();
+        }
+        ctx.setLineDash([]);
+        // Av (red) then v (blue)
+        arrow(cx, cy, toX(Av[0]), toY(Av[1]), "#b00020", 2.5);
+        arrow(cx, cy, toX(v[0]), toY(v[1]), "#1e4f8f", 2.5);
+
+        const fmt = x => (Math.abs(x - Math.round(x)) < 1e-9 ? String(Math.round(x)) : x.toFixed(3));
+        $("ev-vals").textContent = `λ₁ = ${fmt(e.l1)},  λ₂ = ${fmt(e.l2)}`;
+        // alignment test: is Av parallel to v?
+        const cross = Math.abs(v[0] * Av[1] - v[1] * Av[0]);
+        const al = $("ev-aligned");
+        if (cross < 0.03 * (Math.hypot(...Av) + 1e-9)) {
+            const lam = (v[0] * Av[0] + v[1] * Av[1]);   // since |v|=1
+            al.textContent = `aligned ✓  Av = ${fmt(lam)}·v`; al.style.color = "#2e7d32";
+        } else { al.textContent = "not an eigenvector here"; al.style.color = "#606060"; }
+    }
+    function tick() { if (!spinning) return; let t = parseFloat($("ev-theta").value); t = (t + 1.4) % 360; $("ev-theta").value = t; draw(); raf = requestAnimationFrame(tick); }
+
+    ["ev-a", "ev-b", "ev-c", "ev-theta"].forEach(id => $(id).addEventListener("input", draw));
+    $("ev-spin").addEventListener("click", () => { spinning = !spinning; $("ev-spin").textContent = spinning ? "⏸ pause" : "▶ spin"; if (spinning) tick(); else if (raf) cancelAnimationFrame(raf); });
+    $("ev-snap").addEventListener("click", () => {
+        const e = eig2(mat());
+        const ang = (Math.atan2(e.d1[1], e.d1[0]) * 180 / Math.PI + 360) % 360;
+        $("ev-theta").value = ang; draw();
+    });
+    draw();
+})();
+</script>
+
+</body>
+</html>

@@ -87,6 +87,86 @@
 
     window.SRG = { derive: srgDerive, format: srgFormat };
 
+    // ---------- Linear-algebra helpers (Part 0 primer) ----------
+    // Small, dependency-free routines for the primer interactives.
+
+    function trace(M) {
+        let t = 0;
+        for (let i = 0; i < M.length; i++) t += M[i][i];
+        return t;
+    }
+
+    function matVec(M, v) {
+        return M.map(row => row.reduce((s, a, j) => s + a * v[j], 0));
+    }
+
+    function matMul(A, B) {
+        const n = A.length, m = B[0].length, p = B.length;
+        const C = Array.from({ length: n }, () => new Array(m).fill(0));
+        for (let i = 0; i < n; i++)
+            for (let k = 0; k < p; k++)
+                for (let j = 0; j < m; j++) C[i][j] += A[i][k] * B[k][j];
+        return C;
+    }
+
+    // Cyclic Jacobi eigensolver for a real SYMMETRIC matrix (small n).
+    // Returns { values: [..desc], vectors: [eigvec0, eigvec1, ...] }.
+    function eigSymmetric(M) {
+        const n = M.length;
+        const a = M.map(r => r.slice());
+        const V = Array.from({ length: n }, (_, i) =>
+            Array.from({ length: n }, (_, j) => (i === j ? 1 : 0)));
+        for (let sweep = 0; sweep < 100; sweep++) {
+            let off = 0;
+            for (let p = 0; p < n; p++)
+                for (let q = p + 1; q < n; q++) off += a[p][q] * a[p][q];
+            if (off < 1e-20) break;
+            for (let p = 0; p < n; p++) {
+                for (let q = p + 1; q < n; q++) {
+                    if (Math.abs(a[p][q]) < 1e-15) continue;
+                    const phi = 0.5 * Math.atan2(2 * a[p][q], a[q][q] - a[p][p]);
+                    const c = Math.cos(phi), s = Math.sin(phi);
+                    for (let i = 0; i < n; i++) {
+                        const aip = a[i][p], aiq = a[i][q];
+                        a[i][p] = c * aip - s * aiq;
+                        a[i][q] = s * aip + c * aiq;
+                    }
+                    for (let i = 0; i < n; i++) {
+                        const api = a[p][i], aqi = a[q][i];
+                        a[p][i] = c * api - s * aqi;
+                        a[q][i] = s * api + c * aqi;
+                    }
+                    for (let i = 0; i < n; i++) {
+                        const vip = V[i][p], viq = V[i][q];
+                        V[i][p] = c * vip - s * viq;
+                        V[i][q] = s * vip + c * viq;
+                    }
+                }
+            }
+        }
+        const raw = a.map((r, i) => r[i]);
+        const idx = raw.map((_, i) => i).sort((x, y) => raw[y] - raw[x]);
+        return {
+            values: idx.map(i => raw[i]),
+            vectors: idx.map(i => V.map(r => r[i])),
+        };
+    }
+
+    // Round near-integers, group identical eigenvalues into {value, mult}.
+    function spectrumSummary(values, tol = 1e-6) {
+        const out = [];
+        const sorted = values.slice().sort((a, b) => b - a);
+        for (const v of sorted) {
+            const rounded = Math.abs(v - Math.round(v)) < tol ? Math.round(v) : v;
+            const last = out[out.length - 1];
+            if (last && Math.abs(last.value - rounded) < tol) last.mult++;
+            else out.push({ value: rounded, mult: 1 });
+        }
+        return out;
+    }
+
+    window.LinAlg = { trace, matVec, matMul, eigSymmetric, spectrumSummary };
+
     // ---------- Init ----------
 
     function init() {

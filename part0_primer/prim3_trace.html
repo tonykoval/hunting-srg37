@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>0.3 The Trace — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 0.3 · Part 0 — Math for Dummies</span>
+    The Trace
+</h1>
+
+<p class="lead">
+The trace is the simplest number you can extract from a matrix — just
+add up the diagonal. Its secret is that it equals the sum of the
+eigenvalues, which turns "add a diagonal" into a powerful constraint on
+a spectrum you cannot see directly.
+</p>
+
+<h2>0.3.1 &nbsp; Add the diagonal. That's it.</h2>
+
+<div class="callout definition">
+    <div class="callout-title">Definition — trace</div>
+    <p>
+    The <em>trace</em> of a square matrix $A$, written
+    $\operatorname{tr}(A)$, is the sum of its diagonal entries
+    $A_{11} + A_{22} + \cdots + A_{nn}$. No eigenvalues, no work — just
+    read down the diagonal and add.
+    </p>
+</div>
+
+<h2>0.3.2 &nbsp; The secret: trace = sum of eigenvalues</h2>
+
+<p>
+Here is the fact that makes the trace useful far beyond its definition:
+$$ \operatorname{tr}(A) \;=\; \lambda_1 + \lambda_2 + \cdots + \lambda_n, $$
+the sum of <em>all</em> the eigenvalues (with multiplicity). The diagonal
+you can see and the spectrum you often cannot are forced to add up to the
+same total. More generally, $\operatorname{tr}(A^k)$ equals
+$\sum_i \lambda_i^{\,k}$ — the $k$-th powers of the eigenvalues — which
+gives a whole ladder of constraints.
+</p>
+
+<h2>0.3.3 &nbsp; For a graph, the trace is zero</h2>
+
+<p>
+A simple graph has no self-loops, so the diagonal of its adjacency
+matrix is all zeros. Therefore
+$$ \operatorname{tr}(A) = 0 \quad\Longrightarrow\quad
+   \sum_i \lambda_i = 0. $$
+The eigenvalues of <em>any</em> graph sum to zero. A second freebie:
+$\operatorname{tr}(A^2)$ counts closed walks of length two, which is just
+twice the number of edges (equivalently the sum of the degrees), and it
+also equals $\sum_i \lambda_i^2$.
+</p>
+
+<h2>0.3.4 &nbsp; Check it on a real graph</h2>
+
+<p>
+For each graph the widget shows the diagonal sum, the sum of the
+eigenvalues, and the same comparison for $A^2$. The two ways of computing
+each total always agree — that is the theorem, live.
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">Trace vs. sum of eigenvalues</span>
+    <div class="controls">
+        <label for="tr-preset">Graph:</label>
+        <select id="tr-preset">
+            <option value="c5">Pentagon C₅ — SRG(5,2,0,1)</option>
+            <option value="rook9">3×3 rook = Paley(9) — SRG(9,4,1,2)</option>
+            <option value="petersen">Petersen — SRG(10,3,0,1)</option>
+            <option value="c6">Cycle C₆</option>
+        </select>
+    </div>
+    <table>
+        <thead><tr><th>quantity</th><th>diagonal way</th><th>eigenvalue way</th></tr></thead>
+        <tbody>
+            <tr><td>$\operatorname{tr}(A)$</td><td id="tr-da">—</td><td id="tr-ea">—</td></tr>
+            <tr><td>$\operatorname{tr}(A^2)$</td><td id="tr-da2">—</td><td id="tr-ea2">—</td></tr>
+        </tbody>
+    </table>
+    <p style="margin:0.2em 0 0; font-size:0.82em; color:var(--muted); font-family:var(--font-sans);">
+        $\operatorname{tr}(A) = 0$ for every graph; $\operatorname{tr}(A^2) = 2\,|E| = \sum \deg$.
+    </p>
+</div>
+
+<h2>0.3.5 &nbsp; How Chapter 2 uses it</h2>
+
+<p>
+The trace is the lever that pins down the multiplicities of
+$\mathrm{SRG}(37,18,8,9)$. Its spectrum is $18$ once, $r$ with
+multiplicity $f$, and $s$ with multiplicity $g$. Trace zero says
+$$ 18 + f\,r + g\,s = 0. $$
+Combined with $f + g = 36$ (the two non-trivial eigenspaces fill the
+remaining $36$ dimensions) and $r + s = \lambda - \mu = -1$, this forces
+$$ f = g = 18. $$
+Plugging back: $18 + 18r + 18s = 18 + 18(r+s) = 18 + 18(-1) = 0$ ✓. That
+balanced split $18 = 18$, dictated entirely by the trace, is the defining
+feature of the conference case — and the reason the eigenvalues are
+allowed to be irrational. You met the same balance as $2 = 2$ on the
+pentagon in <a href="prim2_spectrum.html">Chapter 0.2</a>.
+</p>
+
+<div class="callout">
+    <div class="callout-title">You now have the toolkit</div>
+    <p>
+    <strong>Eigenvalues</strong> (how a matrix scales special directions),
+    the <strong>spectrum</strong> (all of them, with multiplicities), and
+    the <strong>trace</strong> (their sum, free from the diagonal). That is
+    every linear-algebra idea <a href="../part1_target/ch02_spectrum.html">Chapter
+    2</a> relies on. Onward to the target.
+    </p>
+</div>
+
+<div class="chapter-nav">
+    <a class="prev" href="prim2_spectrum.html">0.2 · The Spectrum</a>
+    <a class="next" href="../part1_target/ch01_target.html">Ch 1 · The Target</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 0.3 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* --------------------- Trace = sum of eigenvalues demo --------------------- */
+(function () {
+    "use strict";
+    const $ = id => document.getElementById(id);
+    const LA = window.LinAlg;
+
+    function emptyAdj(n) { return Array.from({ length: n }, () => new Array(n).fill(0)); }
+    function addEdges(A, e) { for (const [u, v] of e) { A[u][v] = 1; A[v][u] = 1; } return A; }
+    function cycle(n) { const e = []; for (let i = 0; i < n; i++) e.push([i, (i + 1) % n]); return addEdges(emptyAdj(n), e); }
+    function rook9() {
+        const e = [];
+        for (let u = 0; u < 9; u++) for (let v = u + 1; v < 9; v++) {
+            const ur = (u / 3) | 0, uc = u % 3, vr = (v / 3) | 0, vc = v % 3;
+            if ((ur === vr) !== (uc === vc)) e.push([u, v]);
+        }
+        return addEdges(emptyAdj(9), e);
+    }
+    function petersen() {
+        return addEdges(emptyAdj(10), [[0,1],[1,2],[2,3],[3,4],[4,0],
+            [5,7],[7,9],[9,6],[6,8],[8,5],[0,5],[1,6],[2,7],[3,8],[4,9]]);
+    }
+    const GRAPHS = { c5: () => cycle(5), c6: () => cycle(6), rook9, petersen };
+    const r = x => Math.abs(x - Math.round(x)) < 1e-6 ? Math.round(x) : x.toFixed(2);
+
+    function show(name) {
+        const A = GRAPHS[name]();
+        const A2 = LA.matMul(A, A);
+        const { values } = LA.eigSymmetric(A);
+        const sumL = values.reduce((s, v) => s + v, 0);
+        const sumL2 = values.reduce((s, v) => s + v * v, 0);
+        $("tr-da").textContent = r(LA.trace(A));
+        $("tr-ea").textContent = r(sumL);
+        $("tr-da2").textContent = r(LA.trace(A2));
+        $("tr-ea2").textContent = r(sumL2);
+    }
+    $("tr-preset").addEventListener("change", e => show(e.target.value));
+    show("c5");
+})();
+</script>
+
+</body>
+</html>

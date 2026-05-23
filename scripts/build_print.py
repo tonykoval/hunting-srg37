@@ -15,6 +15,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 CHAPTERS = [
+    "part0_primer/prim1_eigenvalues.html",
+    "part0_primer/prim2_spectrum.html",
+    "part0_primer/prim3_trace.html",
     "part1_target/ch01_target.html",
     "part1_target/ch02_spectrum.html",
     "part1_target/ch03_catalog.html",

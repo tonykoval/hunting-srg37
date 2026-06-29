@@ -21,6 +21,7 @@ CHAPTERS = [
     "part1_target/ch01_target.html",
     "part1_target/ch02_spectrum.html",
     "part1_target/ch03_catalog.html",
+    "part1_target/ch03b_twograph.html",
     "part2_hunt/ch04_sat.html",
     "part2_hunt/ch05_switching.html",
     "part2_hunt/ch06_localsearch.html",
@@ -29,8 +30,10 @@ CHAPTERS = [
     "part3_frontier/ch09_findings.html",
     "part3_frontier/ch10_frontier.html",
     "part3_frontier/ch11_tools.html",
+    "part3_frontier/ch12_soundness.html",
     "appendix/notation.html",
     "appendix/bibliography.html",
+    "appendix/theorems.html",
 ]
 
 MAIN_RE = re.compile(r'<main class="chapter"[^>]*>(.*?)</main>', re.DOTALL)

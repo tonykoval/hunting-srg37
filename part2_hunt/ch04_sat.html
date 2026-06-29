@@ -28,6 +28,7 @@
         <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -42,11 +43,13 @@
         <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -104,11 +107,70 @@ The result is enormous:
     </p>
 </div>
 
-<h2>4.2 &nbsp; Attack 1 — de Caen survey over symmetric seeds</h2>
+<h2>4.2 &nbsp; Attack 1 — the de Caen identity over symmetric seeds</h2>
 
 <p>
-Rather than solve the full symmetric problem, restrict to graphs sharing
-an automorphism with a known one. For each of the $40$ nontrivial-Aut
+Rather than encode the whole 37-vertex graph, exploit its structure at a
+single vertex. Fix any $v$. The adjacency matrix block-decomposes into
+the neighbourhood $N(v)$ (18 vertices, inducing an $8$-regular graph
+$A_1$), the non-neighbourhood $V\setminus N[v]$ (18 vertices, inducing a
+$9$-regular graph $A_2$), and a $9$-regular bipartite block $B$ joining
+them:
+</p>
+
+<pre><code>        v      N(v)        V\N[v]
+  v   [ 0  |  1ᵀ    |    0    ]
+ N(v) [ 1  |  A₁    |   Bᵀ    ]     A₁ : 8-regular on 18 vertices
+V\N[v][ 0  |  B     |   A₂    ]     A₂ : 9-regular on 18 vertices</code></pre>
+
+<p>
+The remarkable fact — due to Dominique de Caen — is that the spectrum of
+the <em>far</em> half $A_2$ is completely forced by the parameters and the
+spectrum of the <em>near</em> half $A_1$. There is no freedom: choose the
+neighbourhood and the non-neighbourhood's characteristic polynomial is
+determined.
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">de Caen's complementary-subgraph identity (1998)</div>
+    <p>
+    For an $\mathrm{SRG}(n,k,\lambda,\mu)$ with non-trivial eigenvalues
+    $r,s$ of multiplicities $f,g$, the neighbourhood subgraph $A_1$
+    ($\lambda$-regular) and non-neighbourhood subgraph $A_2$
+    ($(k{-}\mu)$-regular) satisfy
+    </p>
+    <p style="text-align:center">
+    $\chi_{A_2}(x) = \bigl(x-(k-\mu)\bigr)\,\bigl((x-r)(x-s)\bigr)^{\,f-k}\,
+    \dfrac{\chi_{A_1}\!\bigl(-(x+\mu-\lambda)\bigr)}{x+\mu}.$
+    </p>
+    <p>
+    For $(37,18,8,9)$ we have $k=f=g=18$, so $(f-k)=0$ and the identity
+    collapses to
+    $\;\chi_{A_2}(x) = (x-9)\,\chi_{A_1}\!\bigl(-(x+1)\bigr)/(x+9)$, the
+    polynomial division being <em>exact</em> because $A_1$ carries
+    $\lambda=8$ as a simple eigenvalue.
+    <span class="ref">[de Caen, <em>Eur. J. Combin.</em> 19 (1998) 559–565]</span>
+    </p>
+</div>
+
+<p>
+This turns the search into a two-stage sieve. <strong>Stage one</strong>
+(a <em>necessary-condition filter</em>): enumerate candidate
+neighbourhoods $A_1$, compute the forced $\chi_{A_2}$, and discard any
+whose predicted polynomial is not a plausible integral regular-graph
+spectrum — most candidates die here, cheaply, on spectral grounds alone.
+<strong>Stage two</strong>: for the survivors, realise an $A_2$ with that
+spectrum and solve the bipartite $B$-block. Crucially the method assumes
+<em>no</em> automorphism of the whole graph, so the completions it
+produces are typically asymmetric — exactly the regime where $\#6803$
+must live (Chapter 3). It is the same $18+18$ split that a frontier
+language model independently re-derived when asked, in 2026, for a
+construction "without symmetry."
+</p>
+
+<p>
+The SAT instantiation restricts stage two to graphs sharing an
+automorphism with a known one. For each of the $40$ nontrivial-Aut
 catalog graphs, split at its best vertex (smallest automorphism orbit =
 largest stabiliser), encode de Caen's <em>linear</em> $B$-block
 constraints with an automorphism-aware lex-leader symmetry break, and
@@ -174,32 +236,106 @@ no easier than the original formula. This is the key negative lesson of
 the chapter — <em>the symmetry breaking has to be dynamic</em>.
 </p>
 
-<h2>4.4 &nbsp; Attack 3 — SMS+CCL cube-and-conquer (the bright spot)</h2>
+<h2>4.4 &nbsp; Attack 3 — SMS+CCL cube-and-conquer (the live campaign)</h2>
 
 <p>
-The dynamic version. SAT modulo symmetry with a <em>complete canonicity
-check</em> (CCL): a C-<code>nauty</code> propagator wired through the
-IPASIR-UP interface adds, mid-search, the clause "this partial
-assignment is not lexicographically minimal in its isomorphism class".
-We attack the equivalent regular two-graph on $38$ vertices, split into
-$2^{5} = 32$ cubes.
+The dynamic version, and the one attack still running. SAT modulo
+symmetry with a <em>complete canonicity check</em> (CCL): a
+<code>nauty</code> propagator wired through the IPASIR-UP interface adds,
+mid-search, the clause "this partial assignment is not lexicographically
+minimal in its isomorphism class". We do not solve the 37-vertex SRG at
+all — we search the equivalent <strong>regular two-graph on 38
+points</strong>, i.e. a symmetric conference matrix $C$ with
+$C^2 = 37\,I$ (zero diagonal, $\pm1$ off-diagonal). Each model found is
+descended at all 38 vertices and every descendant is canonicalised and
+checked against the catalog; the first one absent from the $6802$ is
+$\#6803$.
+</p>
+
+<p>
+The encoding has just $\binom{38}{2}=703$ edge variables (the parameter
+$k$ is forced, $\S$2, so no degree clauses), about $1.25$ million clauses
+— roughly $25\times$ smaller than the SRG(85) CNF — and the canonicity
+propagator collapses the $38!$ relabellings to one representative per
+class. Three rounds of lexicographic splitting <em>converge</em>:
 </p>
 
 <table>
-    <thead><tr><th>Cubes</th><th>Result</th><th>Time</th></tr></thead>
+    <thead><tr><th>Round</th><th>Cube size</th><th>Cubes</th><th>Proven empty</th><th>Hard residual</th></tr></thead>
     <tbody>
-        <tr><td>$32$ (cube size 5)</td><td>$28$ UNSAT, $4$ still searching</td><td>$28$ closed in $&lt; 1$ min total</td></tr>
+        <tr><td>1</td><td>5</td><td>32</td><td>28</td><td>4</td></tr>
+        <tr><td>2</td><td>8</td><td>256</td><td><strong>249</strong></td><td>7</td></tr>
+        <tr><td>3</td><td>11</td><td>56</td><td>49</td><td>7</td></tr>
+    </tbody>
+</table>
+
+<div class="callout theorem">
+    <div class="callout-title">The seven towers</div>
+    <p>
+    Everything outside seven lexicographic "towers"
+    $\{0,128,192,224,240,248,252\}$ — the binary staircase
+    $1^{k}0^{8-k}$ — is <em>proven empty</em>. Each finer split leaves
+    exactly one hard child per tower (the "all new bits $=0$" extension),
+    so the residual count never drops below seven: the towers are
+    <em>un-splittable</em>. <strong>A $6803$rd graph, if it exists, lies
+    in exactly one of these seven towers.</strong>
+    </p>
+</div>
+
+<p>
+The live run grinds the towers at cube size $16$ ($8$ lexicographic $+$
+$8$ structural edges $\Rightarrow$ $256$ sub-cubes per tower, $1792$
+total) on a desktop's $8$ cores, $24$ h per cube. Easy sub-cubes exhaust
+in seconds; the hard residual is isolated for distribution. State as of
+<strong>2026-06-29</strong>:
+</p>
+
+<table>
+    <thead><tr><th>Bucket</th><th>Count (of 1792)</th><th>Meaning</th></tr></thead>
+    <tbody>
+        <tr><td>Exhausted (empty)</td><td><strong>1653</strong></td><td>proven to contain no $\#6803$ — settled</td></tr>
+        <tr><td>Hard (24 h timeout)</td><td><strong>87</strong></td><td>cluster-scale; needs deeper splitting</td></tr>
+        <tr><td>Pending</td><td><strong>52</strong></td><td>draining steadily</td></tr>
+        <tr><td>$\#6803$ found</td><td style="color:#b00020"><strong>0</strong></td><td>no candidate, no false emission</td></tr>
     </tbody>
 </table>
 
 <p>
-Twenty-eight of thirty-two cubes were refuted almost instantly on a
-desktop — the canonicity propagator prunes isomorphic branches
-brilliantly. Only four "hot-spot" cubes resisted, and the binary's
-<code>--timeout</code> flag was not enforced in that build, so they ran
-unbounded and had to be killed by hand. This is the single most
-promising classical path: the propagator works; it just needs more
-cores and a timeout fix. We return to it in
+The $\sim\!1.25$ M-clause two-graph encoding plus dynamic canonicity is
+the one classical attack that genuinely bites: more than $92\%$ of the
+space is now <em>provably</em> empty. The remaining $\sim\!87$ hard cubes
+are the fractal core the whole search converges onto — the deeper-split
+and distribute job of Chapter 10.
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">A soundness trap (verified, then disarmed)</div>
+    <p>
+    A column-major lex-leader canonicity (CANON_CCL) cuts the redundant
+    model count ${\sim}38\times$ and is <strong>lossless over a full cube
+    partition</strong> — verified by orbit-set equality to exhaustion on
+    small conference cases ($N{=}10,14$: identical distinct-orbit sets).
+    But it is <strong>unsound combined with the seven-tower
+    restriction</strong>: the tower-emptiness proofs were derived under
+    <em>row</em>-lex symmetry breaking, and CANON_CCL's <em>column</em>-min
+    representative of an orbit can fall into a row-lex-pruned cube
+    $\Rightarrow$ false UNSAT $\Rightarrow$ a missed graph. The live run
+    therefore stays on the slower, sound canonicity. (The "$1003$ models
+    for one Paley$(13)$" one sometimes sees is weak-canonicity
+    <em>redundancy</em>, not missed graphs — the search is sound; it is
+    just slow.)
+    </p>
+</div>
+
+<p>
+This makes the campaign a clean <strong>decision procedure</strong>:
+drive every one of the $1792$ sub-cubes (including the hard residual,
+deeper-split to a real UNSAT certificate) to exhaustion with zero new
+descendants and the catalog is <em>proven complete</em> — exactly
+$6802$, no $\#6803$; or emit one non-catalog descendant and that graph
+<em>is</em> $\#6803$. An expired $24$ h timer is UNKNOWN and proves
+nothing, so completeness needs the hard cubes genuinely closed. We
+return to it in
 <a href="../part3_frontier/ch10_frontier.html">Chapter 10</a>.
 </p>
 
@@ -238,9 +374,10 @@ hand-written backtracker instead of a generic solver.
     $10^5$–$10^6$ clauses. At that size the <em>back-end solver is
     irrelevant</em> — CP-SAT and kissat fail identically. What changes
     the picture is not a better solver but a better <em>symmetry
-    story</em>: dynamic canonicity propagation (SMS+CCL) closes $88\%$ of
-    the two-graph cubes instantly, while static breaking plus learned
-    clauses (Smart Cubing) closes none.
+    story</em>: dynamic canonicity propagation (SMS+CCL) has now <em>proven
+    empty</em> over $92\%$ of the two-graph(38) space and converges on a
+    fractal core of ${\sim}87$ hard cubes, while static breaking plus
+    learned clauses (Smart Cubing) closes none.
     </p>
 </div>
 

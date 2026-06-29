@@ -28,6 +28,7 @@
         <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -42,11 +43,13 @@
         <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="bibliography.html">B. Bibliography</a></li>
+        <li><a href="theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -94,7 +97,43 @@
 
     <p><strong>Regular two-graph.</strong> A switching class of graphs
     encoding an SRG up to Seidel switching; the objects McKay–Spence
-    classify on $36$ and $38$ vertices.</p>
+    classify on $36$ and $38$ vertices. A 38-point one descends to
+    SRG(37,18,8,9); the 38-vertex case is the first <em>open</em> case.</p>
+
+    <p><strong>Descendant.</strong> The graph obtained from a two-graph by
+    fixing a point $x$, isolating it, and joining $y,z$ iff $\{x,y,z\}$ is
+    coherent, then deleting $x$. Each regular two-graph on 38 points has 38
+    descendants, all SRG(37,18,8,9).</p>
+
+    <p><strong>Conference matrix ($C_n$).</strong> A symmetric $\pm1$
+    matrix with zero diagonal and $C^2 = (n-1)I$. Order-38 conference
+    matrices are exactly the regular two-graphs on 38 points; the search
+    target is one whose descendant is not in the catalog.</p>
+
+    <p><strong>Seidel matrix.</strong> $S = J - I - 2A$: $0$ on the
+    diagonal, $-1$ on edges, $+1$ on non-edges. For a regular two-graph,
+    $S^2 = (n-1)I$.</p>
+
+    <p><strong>Defect.</strong> The quantity
+    $f(S) = \sum_{i<j}(S^2)_{ij}^2$, zero iff $S$ is a conference matrix.
+    The objective the GPU finder (Ch 10) minimises.</p>
+
+    <p><strong>SAT modulo symmetries (SMS).</strong> A SAT search in which a
+    <em>canonicity propagator</em> adds, mid-search, the clause "this
+    partial assignment is not the lexicographically minimal labelling in
+    its isomorphism class", so the solver enumerates one representative per
+    class instead of all $n!$ relabellings.</p>
+
+    <p><strong>Cube-and-conquer.</strong> Splitting a SAT instance into many
+    "cubes" (fixed partial assignments) solved independently. Here the cube
+    edges partition the two-graph space; the seven un-splittable towers are
+    the hard residual (Ch 4).</p>
+
+    <p><strong>Star complement.</strong> For an eigenvalue $\tau$ of
+    multiplicity $m$, an $(n-m)$-vertex induced subgraph not having $\tau$
+    as an eigenvalue; it determines the whole graph up to the extension
+    incidences (Cvetković–Rowlinson–Simić). A proposed exact attack
+    (Ch 10).</p>
 
     <p><strong>Godsil–McKay switching.</strong> A local operation on a
     cell $C$ where every outside vertex sees $0$, half, or all of $C$;

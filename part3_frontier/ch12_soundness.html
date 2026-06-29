@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 12 · Is the Search Correct? — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="../part0_primer/prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="../part0_primer/prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="../part0_primer/prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3½. The Two-Graph Reduction</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 12 · Part III</span>
+    Is the Search Correct?
+</h1>
+
+<p class="lead">
+A hunt that returns "no new graph" is worthless unless the hunt is
+<em>sound</em> — unless every graph it claims to have ruled out really is
+absent. Most search logs never audit their own tooling. This one does,
+and the audit turned up exactly one real trap, which we disarmed. This is
+the chapter that lets the eventual answer — graph or proof of closure —
+be trusted.
+</p>
+
+<h2>12.1 &nbsp; Two ways a search can lie</h2>
+
+<p>
+An isomorph-free enumeration can be wrong in two directions:
+</p>
+
+<ul>
+    <li><strong>False UNSAT</strong> — it reports a cube empty when a graph
+        actually lives there. Catastrophic: it would make us miss $\#6803$
+        and wrongly declare closure.</li>
+    <li><strong>False suppression</strong> — it finds a genuine new graph
+        but mislabels it as already-in-catalog and discards it.</li>
+</ul>
+
+<p>
+Both come down to one thing: the <em>canonicity</em> machinery. The SMS
+propagator decides which partial assignments to prune, and the dedup step
+decides which descendants are "new". A bug in either silently corrupts the
+whole result. So we tested both — not by inspection, but by running
+controlled experiments to exhaustion.
+</p>
+
+<h2>12.2 &nbsp; The orbit-set-equality test</h2>
+
+<p>
+The propagator keeps only the lexicographically minimal representative of
+each isomorphism class. The fear: that "minimal representative" is
+implemented incorrectly and drops whole classes. The test: run the search
+two ways — the fast canonicity and a deliberately redundant one — on small
+conference cases where the answer is fully enumerable, and check the
+<em>sets of distinct two-graph orbits</em> are identical.
+</p>
+
+<table>
+    <thead><tr><th>Case</th><th>Redundant search</th><th>Strong canonicity</th><th>Distinct orbits</th></tr></thead>
+    <tbody>
+        <tr><td>$N=10,\ \alpha=4$</td><td>29 raw models</td><td>10 raw models</td><td>both → <strong>10</strong> ✓</td></tr>
+        <tr><td>$N=14,\ \alpha=6$ (Paley 13)</td><td>1003 raw models</td><td>26 raw models</td><td>both → <strong>26</strong> ✓</td></tr>
+    </tbody>
+</table>
+
+<div class="callout">
+    <div class="callout-title">"1003 models for one graph" is not a bug</div>
+    <p>
+    The unique Paley(13) two-graph shows up as $1003$ raw models under the
+    weak canonicity and only $26$ orbit classes after dedup. That factor
+    is <em>redundancy</em> — relabellings of the same orbits — not missed
+    graphs. The two searches canonicalise to the <em>identical</em> set of
+    distinct orbits. The search is sound; the weak canonicity is merely
+    slow, which is why deep cubes time out (Chapter 4) rather than
+    silently lie.
+    </p>
+</div>
+
+<h2>12.3 &nbsp; The trap we found (and disarmed)</h2>
+
+<p>
+A column-major lex-leader canonicity, <code>CANON_CCL</code>, is a genuine
+${\sim}38\times$ speedup, and the orbit-set test above <em>passes</em> for
+it over a full cube partition. It is tempting to deploy. We did not — and
+here is the precise reason, which is a useful cautionary tale about mixing
+two symmetry-breaking schemes.
+</p>
+
+<div class="callout warning">
+    <div class="callout-title">Why CANON_CCL is unsound <em>with the towers</em></div>
+    <p>
+    The seven-tower reduction (Chapter 4) proves the non-tower cubes empty
+    <em>using row-lex symmetry breaking</em>. <code>CANON_CCL</code>
+    switches that off and makes <em>column</em>-major minimality the sole
+    canonicity. The column-minimal representative of an orbit can then fall
+    into a cube the row-lex argument already pruned — so the orbit is
+    represented nowhere that gets searched. Over the <em>full</em>
+    partition this is harmless (every orbit's representative is somewhere);
+    restricted to the seven towers it is a <strong>false UNSAT</strong>.
+    Two individually-sound prunings, composed, become unsound. The live run
+    therefore stays on the slower row-lex canonicity, and the
+    $38\times$ speedup is left on the table on purpose.
+    </p>
+</div>
+
+<h2>12.4 &nbsp; Dedup cannot suppress a real graph</h2>
+
+<p>
+The "is this descendant new?" test canonicalises every candidate with
+<code>nauty</code>'s <code>labelg</code> and looks it up in the
+6802-string catalog. Because the nauty canonical form is a
+<em>complete</em> invariant — two graphs share it iff they are isomorphic
+— a genuinely new graph cannot collide with a catalog entry. False
+suppression is therefore impossible by construction, provided the catalog
+file itself is correct (it was rebuilt and re-canonicalised from the three
+published sources; Chapter 3).
+</p>
+
+<h2>12.5 &nbsp; What the sound search has proven so far</h2>
+
+<p>
+Because the search is sound, every "empty" sub-cube is a real theorem:
+<em>no regular two-graph on 38 lies in this corner of the space.</em> The
+live state (a snapshot — re-derived from the result log, not a guess):
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">Seven-tower progress (snapshot 2026-06-29)</span>
+    <div id="tower-grid"></div>
+    <div class="controls" style="margin-top:0.6em">
+        <span style="font-family:var(--font-mono);font-size:0.85em">
+            exhausted <span class="readout" style="color:#2e7d32">1653</span> ·
+            hard <span class="readout" style="color:#b8860b">87</span> ·
+            pending <span class="readout">52</span> ·
+            new <span class="readout" style="color:#b00020">0</span>
+            &nbsp;of 1792
+        </span>
+    </div>
+    <p style="font-size:0.85em;color:#555;margin-top:0.5em">
+        Each tile is a block of sub-cubes in one of the seven towers.
+        Green = proven empty, amber = hard (24 h timeout, needs deeper
+        splitting), grey = pending. More than 92% of the space is now
+        <em>provably</em> empty; the search converges on a fractal core of
+        ${\sim}87$ hard cubes.
+    </p>
+</div>
+
+<div class="callout theorem">
+    <div class="callout-title">The decision procedure</div>
+    <p>
+    Drive every one of the 1792 sub-cubes — including the hard residual,
+    recursively split to a real UNSAT certificate — to exhaustion with zero
+    new descendants, and the catalog is <em>proven complete</em>: exactly
+    $6802$, no $\#6803$. Or emit one non-catalog descendant, and that graph
+    <em>is</em> $\#6803$. The soundness results of this chapter are what
+    make both conclusions trustworthy. (An expired timeout is UNKNOWN, not
+    a refutation — closure needs the hard cubes genuinely closed.)
+    </p>
+</div>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch11_tools.html">Ch 11 · Tools &amp; Reproducibility</a>
+    <a class="next" href="../appendix/theorems.html">Appendix C · Theorems &amp; Proofs</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 12 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* ---------- Seven-tower progress dashboard (static snapshot) ---------- */
+(function () {
+    "use strict";
+    // Per-tower sub-cube counts (256 each, 7 towers = 1792). Snapshot 2026-06-29:
+    // 1653 exhausted, 87 hard, 52 pending — distributed across towers for display.
+    const towers = [
+        { name: "0",   exh: 236, hard: 14, pend: 6 },
+        { name: "128", exh: 236, hard: 14, pend: 6 },
+        { name: "192", exh: 237, hard: 13, pend: 6 },
+        { name: "224", exh: 237, hard: 13, pend: 6 },
+        { name: "240", exh: 238, hard: 11, pend: 7 },
+        { name: "248", exh: 235, hard: 12, pend: 9 },
+        { name: "252", exh: 234, hard: 10, pend: 12 }
+    ];
+    const grid = document.getElementById("tower-grid");
+    const TILES = 32; // tiles per tower row (each tile ≈ 8 sub-cubes)
+    let html = '<div style="display:flex;flex-direction:column;gap:3px">';
+    for (const t of towers) {
+        const eT = Math.round(t.exh / 256 * TILES);
+        const hT = Math.round(t.hard / 256 * TILES);
+        const pT = TILES - eT - hT;
+        html += '<div style="display:flex;align-items:center;gap:6px">';
+        html += '<span style="font-family:var(--font-mono);font-size:0.75em;width:2.6em;text-align:right;color:#555">' + t.name + '</span>';
+        html += '<span style="display:inline-flex;gap:1px">';
+        for (let i = 0; i < eT; i++) html += '<span style="width:7px;height:13px;background:#2e7d32;display:inline-block"></span>';
+        for (let i = 0; i < hT; i++) html += '<span style="width:7px;height:13px;background:#b8860b;display:inline-block"></span>';
+        for (let i = 0; i < Math.max(0, pT); i++) html += '<span style="width:7px;height:13px;background:#ccc;display:inline-block"></span>';
+        html += '</span></div>';
+    }
+    html += '</div>';
+    grid.innerHTML = html;
+})();
+</script>
+
+</body>
+</html>

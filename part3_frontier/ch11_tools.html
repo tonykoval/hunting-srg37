@@ -28,6 +28,7 @@
         <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -42,11 +43,13 @@
         <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -168,7 +171,42 @@ docker run --rm -v "$(pwd)/out:/work/out" tonykoval/srg37-hunt \
     </p>
 </div>
 
-<h2>11.6 &nbsp; The standing invitation</h2>
+<h2>11.6 &nbsp; The live two-graph campaign &amp; the GPU finder</h2>
+
+<p>
+The converged seven-tower run (Ch 4, Ch 12) and the GPU finder (Ch 10) are
+fully scripted. The two-graph SMS engine is the <code>de-caen-filter</code>
+binary (CaDiCaL $+$ a bundled <code>nauty</code> canonicity propagator via
+IPASIR-UP); the campaign and its restart-safe resume are driven by:
+</p>
+
+<pre><code># One tower sub-cube (cube_size 16): exhaust, or emit a #6803 descendant
+de-caen-filter --solve-two-graph-canon-cube 38 18 &lt;idx&gt; 16 \
+    --catalog srg37_catalog.g6 --out hit.g6 --timeout 86400
+
+# Resume after a restart WITHOUT redoing finished cubes (appends; skips EXHAUSTED)
+WORKERS=8 bash scripts/srg37_resume.sh pending
+bash scripts/srg37_remaining_work.sh hard      # the ~87 hard cubes to distribute
+bash scripts/distribute_srg.sh srg37 pc-a:8 pc-b:8 …   # per-machine slices
+
+# GPU stochastic-local-search finder (idle GPU), with the defect-repair move
+GPU_TWOGRAPH=1 twograph-sls --cube-idx &lt;idx&gt; --budget-secs 3600 \
+    --population 4096 --lk-depth 80 --out hits.g6   # f=0 ⇒ verify vs catalog</code></pre>
+
+<div class="callout">
+    <div class="callout-title">Restart-safe by construction</div>
+    <p>
+    All state lives on host bind-mounts, so a container crash loses no
+    progress; the container runs <code>sleep infinity</code> with the grind
+    as a detached child. <strong>Resume with
+    <code>srg37_resume.sh</code>, never <code>run_all_towers.sh</code></strong>
+    — the latter truncates the result log. Any non-empty <code>hit.g6</code>
+    is a $\#6803$ candidate: canonicalise with <code>nauty-labelg</code> and
+    diff against the catalog.
+    </p>
+</div>
+
+<h2>11.7 &nbsp; The standing invitation</h2>
 
 <p>
 The catalog, the unaccounted targets, and every attack are public. If you

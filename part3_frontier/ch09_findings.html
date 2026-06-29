@@ -28,6 +28,7 @@
         <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -42,11 +43,13 @@
         <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -172,6 +175,43 @@ Each failure points at its own remedy — more cores and dynamic symmetry
 for SAT, a compiled extender for backtracking, a verifier-coupled policy
 for the model. <a href="ch10_frontier.html">Chapter 10</a> turns the
 remedies into a plan.
+</p>
+
+<h2>9.5 &nbsp; What the wall teaches</h2>
+
+<p>
+The failures are not independent accidents; they are two faces of one
+structural fact. The rigidity theorem (Ch 3, App. C.2) says any $\#6803$
+is rigid — $|\mathrm{Aut}|=1$ — and large ($n=37$ at the dense conference
+ratio $k/n\approx\tfrac12$). Those two properties define exactly the regime
+in which general methods fail:
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">The two walls, and their common cause</div>
+    <p>
+    <strong>Wall A (search cost).</strong> Generic SAT/CP on a completion
+    of $234$ parity-deep two-graph bits is intractable; the back-end solver
+    is irrelevant. Symmetry would shrink it — but by the theorem there is
+    none to exploit.<br>
+    <strong>Wall B (local-search floor).</strong> Annealing, basin-hopping
+    and Lin–Kernighan all plateau $50$–$90\%$ of the way to a solution; the
+    conference graph is switching-rigid, so the manifold has no nearby
+    descent path.<br>
+    <em>Both walls are the price of asymmetry.</em> A target that is large
+    <em>and</em> rigid is precisely where every general technique bounces —
+    and what is left is isomorph-free enumeration, slow but sound.
+    </p>
+</div>
+
+<p>
+This is not special to $(37,18,8,9)$. The same pattern — symmetry-based
+methods reach only symmetric objects, and raw search drowns at low
+symmetry — recurs across open strongly regular and conference-matrix
+problems; an independent 2023 SAT study of the Conway-99 graph reached the
+identical verdict. The honest, general lesson: <em>when a combinatorial
+object is both large and asymmetric, the only methods that can decide it
+are the ones that pay full enumeration cost.</em>
 </p>
 
 <div class="chapter-nav">

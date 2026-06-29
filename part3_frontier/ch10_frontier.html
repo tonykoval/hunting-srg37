@@ -28,6 +28,7 @@
         <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -42,11 +43,13 @@
         <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -101,18 +104,60 @@ changes is the last one.
 
 <h2>10.2 &nbsp; The plan, ranked</h2>
 
-<h3>1. Distributed SMS+CCL at cube size $\ge 7$ &nbsp;<em>(highest probability)</em></h3>
+<h3>1. Distributed SMS+CCL on the seven towers &nbsp;<em>(the live campaign)</em></h3>
 <p>
-The one attack that visibly worked was the canonicity-propagated
-cube-and-conquer of $\S$4.4: $28$ of $32$ cubes refuted in under a
-minute. The four survivors need (a) more cubes — split at size $7$ for
-$128$ pieces, isolating the hot spots — (b) a real cluster, and (c) the
-<code>--timeout</code> bug fixed so deep cubes are bounded and recycled.
-Estimated cost: a week of wall-clock on a modest cloud cluster,
-\$200–\$500. If $\#6803$ is reachable by enumeration, this finds it.
+The canonicity-propagated cube-and-conquer of $\S$4.4 has run for months
+and <em>converged</em>: more than $92\%$ of the two-graph(38) space is now
+proven empty, and the search has reduced to the seven un-splittable towers
+— at cube size $16$, <strong>1653 of 1792 sub-cubes exhausted, ${\sim}87$
+hard, $0$ new</strong> (2026-06-29). The remaining work is precisely the
+${\sim}87$ cluster-scale cubes: recursively re-split each (cube size
+$18$–$20$) so most fragments exhaust, isolating the true hard core, and
+fan the fragments across machines (the work-list is emitted by
+<code>srg37_remaining_work.sh</code>; per-machine slices by
+<code>distribute_srg.sh</code>). This is the only route to a
+<em>completeness</em> proof, and if $\#6803$ is reachable by enumeration it
+is here. Estimated cost: a small pool of desktops over weeks.
 </p>
 
-<h3>2. Rust extension backtracker with bitset propagation &nbsp;<em>(most actionable)</em></h3>
+<h3>2. GPU stochastic-local-search finder &nbsp;<em>(the fast long shot)</em></h3>
+<p>
+A regular two-graph(38) is a $\pm1$ Seidel matrix with $S^2 = 37\,I$, so
+the hunt for one is the minimisation of the defect
+$f(S)=\sum_{i<j}(S^2)_{ij}^2$. A population stochastic local search runs
+this on an idle GPU — thousands of restarts in parallel, seeded inside the
+hard cubes' fixed edges. Plain single-flip search floors near $246$
+violations (Chapter 6's Wall B), but a <em>defect-repair</em> move — a
+variable-depth chain that descends $D=S^2-37I$ directly — recovers an
+$8$-flip-perturbed Paley$(37)$ all the way back to $f=0$ in validation.
+It can only ever <em>find</em> a graph, never prove one absent, so it is
+the complement to Path 1, not a substitute: a cheap parallel shot at a
+witness while the CPU grind chases completeness.
+</p>
+
+<figure>
+    <svg viewBox="0 0 320 130" width="100%" style="max-width:420px;display:block;margin:0 auto" role="img"
+         aria-label="Defect-repair descent: cost falls from 2128 to 0 over the chain.">
+        <line x1="30" y1="10" x2="30" y2="110" stroke="#bbb" stroke-width="1"/>
+        <line x1="30" y1="110" x2="310" y2="110" stroke="#bbb" stroke-width="1"/>
+        <polyline points="30,14 70,46 110,66 150,82 190,94 230,102 270,107 300,110"
+                  fill="none" stroke="#2e7d32" stroke-width="2"/>
+        <circle cx="30" cy="14" r="3" fill="#b00020"/>
+        <circle cx="300" cy="110" r="3" fill="#2e7d32"/>
+        <text x="36" y="14" font-size="9" fill="#b00020">cost 2128 (8-flip perturbation)</text>
+        <text x="232" y="123" font-size="9" fill="#2e7d32">cost 0 ✓</text>
+        <text x="120" y="128" font-size="9" fill="#777">variable-depth chain →</text>
+    </svg>
+    <figcaption>
+        Figure 10.1. &nbsp; The defect-repair move on a validation case: a
+        Paley(37) Seidel matrix perturbed by $8$ sign flips (defect $2128$)
+        is driven back to a genuine conference matrix (defect $0$) by one
+        variable-depth chain — where single-flip annealing floors near
+        $246$.
+    </figcaption>
+</figure>
+
+<h3>3. Rust extension backtracker with bitset propagation &nbsp;<em>(most actionable)</em></h3>
 <p>
 We already hold $30{,}122$ concrete unaccounted neighbourhoods
 ($\S$3.3). A compiled backtracker
@@ -124,7 +169,7 @@ just the multi-day implementation begun in <code>orbit-gen</code>
 v1.0.514.
 </p>
 
-<h3>3. Verifier-coupled learned policy &nbsp;<em>(research-grade)</em></h3>
+<h3>4. Verifier-coupled learned policy &nbsp;<em>(research-grade)</em></h3>
 <p>
 The LLM frameworks failed by asking for a one-shot answer. Couple
 generation to the cheap verifier instead: fine-tune a small model on
@@ -134,7 +179,7 @@ This is the unspent <code>llm_mcts_search.py</code> framework; it is the
 most speculative and the most interesting.
 </p>
 
-<h3>4. A completeness proof &nbsp;<em>(the other way to win)</em></h3>
+<h3>5. A completeness proof &nbsp;<em>(the other way to win)</em></h3>
 <p>
 Failing to find $\#6803$ is not the same as proving it absent. A genuine
 classification — closing the million unaccounted neighbourhoods, e.g. via
@@ -144,18 +189,50 @@ direction. This is an open problem in finite geometry in its own right,
 and the hardest item on the list.
 </p>
 
+<h3>6. Star-complement enumeration &nbsp;<em>(exact, untried)</em></h3>
+<p>
+The eigenvalue $s=(-1-\sqrt{37})/2$ has multiplicity $18$, so a graph
+realising it is determined by a $19$-vertex <em>star complement</em> $H$
+(a subgraph not having $s$ as an eigenvalue) together with extension
+vertices compatible via $b^\top(sI-A_H)^{-1}b = s$. Enumerate the
+spectrum-compatible $H$, then seek an $18$-clique in the
+extension-compatibility graph; any clique reconstructs a 37-vertex SRG.
+The method (Cvetković–Rowlinson–Simić) is <em>exact</em>, assumes no
+automorphism, and gives a proof certificate if the $H$'s are exhausted —
+and it is GPU-batchable with the spectrum and PSD kernels we already have.
+Genuinely untried here.
+</p>
+
+<h3>7. SDP / interlacing cube-pruning &nbsp;<em>(kills hard cubes)</em></h3>
+<p>
+Every principal submatrix of the Seidel matrix $S$ ($S^2=37I$) has all its
+eigenvalues in $[-\sqrt{37},\sqrt{37}]$ (Cauchy interlacing). A small
+semidefinite feasibility test on a partially-assigned principal submatrix
+— is there a completion with $-\sqrt{37}\,I \preceq P \preceq
+\sqrt{37}\,I$? — can <em>refute</em> a hard cube that SAT cannot split,
+and the tests batch on the GPU PSD/Cholesky kernels. Not a global proof on
+its own, but a cube-killer that complements the SMS search on exactly the
+${\sim}87$ residual cubes.
+</p>
+
 <h2>10.3 &nbsp; Two ways this ends</h2>
 
 <div class="callout theorem">
-    <div class="callout-title">The two endings</div>
+    <div class="callout-title">The two endings — one decision procedure</div>
     <p>
-    <strong>A new graph.</strong> Path 1 or 2 yields a valid
+    The live campaign (Path 1) settles the question both ways.
+    <strong>A new graph.</strong> Any sub-cube — or a GPU restart
+    (Path 2), or the extension backtracker (Path 3) — emits a valid
     $\mathrm{SRG}(37,18,8,9)$ whose canonical form is absent from the
     catalog. The count becomes (at least) $6803$ and the classification
     advances for the first time since 2001.<br>
-    <strong>A proof of closure.</strong> Path 4 shows $6802$ is final —
-    the harder, more definitive ending, and a result about conference
-    graphs well beyond this single tuple.
+    <strong>A proof of closure.</strong> Every one of the $1792$ sub-cubes
+    — including the ${\sim}87$ hard ones, recursively split to a real
+    UNSAT certificate — exhausts with zero new descendants. Then $6802$ is
+    <em>exactly</em> final: the first open case in the classification of
+    regular two-graphs is closed, a result about conference graphs well
+    beyond this single tuple. (An expired timeout is UNKNOWN, not a
+    refutation — closure needs the hard cubes genuinely driven to UNSAT.)
     </p>
 </div>
 
@@ -191,13 +268,14 @@ file, ready to run.
     const ROWS = [
         { fam: "SAT", attack: "de Caen rich-Aut survey", budget: "40 seeds × 180 s", result: "all time out (Wall A)", out: "exhausted" },
         { fam: "SAT", attack: "Smart Cubing (prerun + conquer)", budget: "~1024 cubes × 60 s", result: "all UNKNOWN", out: "exhausted" },
-        { fam: "SAT", attack: "SMS+CCL two-graph(38), cube 5", budget: "32 cubes", result: "28 UNSAT, 4 deep-searching", out: "promising" },
+        { fam: "SAT", attack: "SMS+CCL two-graph(38), 7 towers ×256", budget: "1792 cubes, 24h ea", result: "1653 empty · ~87 hard · 0 new", out: "promising" },
         { fam: "SAT", attack: "Neighbour extension (CP-SAT + kissat)", budget: "60 cands × 30–300 s", result: "0 SAT, 0 refuted", out: "exhausted" },
         { fam: "Switching", attack: "Godsil–McKay single-cell (4–12)", budget: "exhaustive + sampled", result: "0 valid cells", out: "exhausted" },
         { fam: "Switching", attack: "Godsil–McKay multi-cell", budget: "50k × (4,4)/(4,6)/(6,6)", result: "0 valid cell pairs", out: "exhausted" },
         { fam: "Search", attack: "Catalog basin-hopping (LK-2)", budget: "360 × 20 × 5000", result: "0 novel; 4% recover seed", out: "exhausted" },
         { fam: "Search", attack: "Simulated annealing", budget: "120 × 50 000", result: "best viol ≥ 340", out: "exhausted" },
         { fam: "Search", attack: "Euclidean embedding (Adam, ℝ¹⁸)", budget: "70 trials", result: "binarised viol ~1000", out: "exhausted" },
+        { fam: "Search", attack: "GPU SLS + defect-repair (Seidel S²=37I)", budget: "prepared, idle GPU", result: "recovers Paley to f=0; not yet launched", out: "promising" },
         { fam: "LLM", attack: "AlphaEvolve (GPT-5)", budget: "2 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "cpro1 algebraic constructor", budget: "10 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "Multi-agent debate (4 roles)", budget: "5 / 5 rounds", result: "best viol 1148", out: "exhausted" },

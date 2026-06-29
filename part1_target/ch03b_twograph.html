@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 3½ · The Two-Graph Reduction — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="../part0_primer/prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="../part0_primer/prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="../part0_primer/prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="ch01_target.html">1. The Target</a></li>
+        <li><a href="ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="ch03b_twograph.html">3½. The Two-Graph Reduction</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 3½ · Part I</span>
+    The Two-Graph Reduction — Where #6803 Lives
+</h1>
+
+<p class="lead">
+Chapter 3 said the catalog is a lower bound and any new graph is rigid.
+This chapter says <em>where</em> the rigid graph must be. The hunt is not
+really for a 37-vertex graph at all — it is for one extra
+<strong>regular two-graph on 38 points</strong>, and a clean lemma plus a
+completed classification pin it to a single, well-defined corner of the
+search space.
+</p>
+
+<h2>3½.1 &nbsp; One object, four disguises</h2>
+
+<p>
+A conference graph sits at the bottom of a chain of equivalent objects.
+Finding any one of them solves the problem.
+</p>
+
+<table>
+    <thead><tr><th>Object</th><th>Lives on</th><th>Defining relation</th></tr></thead>
+    <tbody>
+        <tr><td>SRG(37,18,8,9)</td><td>37 vertices</td><td>$A^2 = 18I + 8A + 9(J{-}I{-}A)$</td></tr>
+        <tr><td>regular two-graph</td><td>38 points</td><td>every pair in equally many coherent triples (Taylor)</td></tr>
+        <tr><td>conference matrix $C_{38}$</td><td>$38\times38$</td><td>$C=C^\top$, $\,0$ diagonal, $\pm1$ off-diagonal, $\,C^2 = 37\,I$</td></tr>
+        <tr><td>equiangular lines</td><td>$\mathbb{R}^{19}$ (or $\mathbb{R}^{18}$)</td><td>38 (resp. 37) lines at a common angle $\arccos\tfrac1{\sqrt{37}}$</td></tr>
+    </tbody>
+</table>
+
+<p>
+The operational target is the <strong>conference matrix</strong>. A
+symmetric $C$ of order 38 with $C^2 = 37I$ <em>is</em> a regular two-graph
+on 38 points, and <em>every</em> one of its 38 vertex descendants is an
+SRG(37,18,8,9). So the entire problem reduces to:
+</p>
+
+<div class="callout">
+    <div class="callout-title">The target, in one line</div>
+    <p>
+    Find a symmetric $\pm1$ matrix $C$ of order 38, zero diagonal, with
+    $C^2 = 37I$, whose descendant is not among the 6802 catalog graphs —
+    that descendant is $\#6803$.
+    </p>
+</div>
+
+<h3>The conference relation, interactively</h3>
+
+<p>
+The relation $C^2 = (n{-}1)I$ is rigid: every off-diagonal entry of $C^2$
+must be exactly $0$. Below is a genuine symmetric conference matrix of
+order 6 (so $C^2 = 5I$). Flip any off-diagonal $\pm1$ and watch the
+off-diagonal of $C^2$ light up — a single change wrecks the relation
+everywhere. This is exactly the "defect" the order-38 search (and the GPU
+finder of Chapter 10) must drive to zero.
+</p>
+
+<div class="interactive">
+    <span class="interactive-label">Conference-relation checker (order 6, target $C^2 = 5I$)</span>
+    <div class="controls">
+        <button id="cm-reset" type="button">Reset to conference matrix</button>
+        <span style="font-family:var(--font-mono);font-size:0.85em">
+            off-diagonal defect: <span class="readout" id="cm-defect">0</span>
+        </span>
+    </div>
+    <div id="cm-grid" style="display:inline-block;font-family:var(--font-mono);font-size:0.95em;line-height:1.7"></div>
+    <p style="font-size:0.85em;color:#555;margin-top:0.6em">
+        Click an off-diagonal cell to flip its sign. Green = conference
+        (defect 0); red entries in $C^2$ violate $C^2=5I$.
+    </p>
+</div>
+
+<h2>3½.2 &nbsp; Prescribed symmetry is tiny or empty: the $p\!\cdot\!f \le 37$ lemma</h2>
+
+<p>
+Before the brute search, ask whether a new two-graph could carry an
+automorphism we can exploit. For a single prime-order automorphism the
+answer is sharply bounded.
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Lemma &nbsp;($p\cdot f \le 37$)</div>
+    <p>
+    Let a regular two-graph on 38 points admit an automorphism $\sigma$ of
+    <em>prime</em> order $p$ fixing $f$ points (so $38 - f \equiv 0
+    \bmod p$). Then $\;p\cdot f \le 37$.
+    </p>
+    <p>
+    <em>Proof sketch.</em> $\sigma$ commutes with the Seidel matrix $S$
+    ($S^2 = 37I$), so $S$ preserves the $\sigma$-invariant subspace spanned
+    by the $f$ fixed-point indicators and the normalised orbit-sum vectors.
+    The compression $M_0$ of $S$ to that subspace still satisfies
+    $M_0^2 = 37I$. Reading the diagonal of this identity on the fixed block
+    and bounding the off-block terms (sums of squares of orbit row-sums,
+    $\ge 0$) gives $p\cdot f + (\text{nonneg}) = 37$, hence
+    $p\cdot f \le 37$. $\;\square$
+    </p>
+</div>
+
+<p>
+Combine the lemma with the parity $38 - f \equiv 0 \pmod p$ and the
+<em>complete</em> classification of symmetric SRG(37,18,8,9) (the 40 of
+Chapter 3), and the prescribed-cyclic landscape collapses entirely:
+</p>
+
+<ul>
+    <li>The only fixed-point-<em>free</em> cyclic cases are $p=2,f=0$
+        (<strong>proven impossible</strong>, by a determinant/row-sum
+        parity argument) and $p=19,f=0$ (<strong>done</strong> — five
+        classes, all in the catalog).</li>
+    <li>Every cyclic case with $f>0$ has a <em>symmetric descendant</em>
+        at a fixed vertex, and is therefore already inside the complete
+        40-graph classification.</li>
+</ul>
+
+<p>
+So <strong>no prescribed-cyclic route can reach an uncovered graph.</strong>
+(Empirically confirmed: a 60-second annealing probe of the smallest open
+cyclic case, $p=7,f=3$ with 103 free bits, floors at ${\sim}1004$
+violations and finds nothing.)
+</p>
+
+<h2>3½.3 &nbsp; The three-layer map</h2>
+
+<p>
+Putting the rigidity theorem (Chapter 3) and the lemma together, the
+regular two-graphs on 38 split into exactly three layers — and only one
+is open.
+</p>
+
+<table>
+    <thead><tr><th>Layer</th><th>Two-graph automorphism</th><th>Status</th><th>Tool</th></tr></thead>
+    <tbody>
+        <tr><td><strong>1</strong></td><td>has a symmetric descendant</td><td><strong>closed</strong> — exactly 20 two-graphs / 40 SRGs</td><td>orbit matrices (published)</td></tr>
+        <tr><td><strong>2</strong></td><td>nontrivial, all descendants asymmetric</td><td>empty for cyclic $\sigma$ (lemma)</td><td>prescribed-$\mathbb{Z}_p$ enumeration</td></tr>
+        <tr><td><strong>3</strong></td><td>trivial ($|\mathrm{Aut}|=1$)</td><td><strong>OPEN</strong> — the whole frontier</td><td>the live two-graph(38) SMS grind (Ch 4)</td></tr>
+    </tbody>
+</table>
+
+<div class="callout theorem">
+    <div class="callout-title">The exact open question</div>
+    <p>
+    Does a <strong>195th regular two-graph on 38 points, with trivial
+    automorphism group</strong>, exist? The 194 known two-graphs yield the
+    6802 catalog graphs; a 195th would yield new descendants — and the
+    first of those not already in the catalog is $\#6803$. The McKay–Spence
+    enumeration of regular two-graphs on 38 is the <em>first open case</em>
+    (everything up to 36 is classified), so this is a genuine, named,
+    unsolved problem — not a fishing expedition.
+    </p>
+</div>
+
+<p>
+This is the justification for everything in Part II and III: the search
+must be isomorph-free enumeration over fully asymmetric two-graphs on 38.
+Chapter 4's SMS+CCL cube-and-conquer is exactly that tool; the rest of the
+book is the record of which shortcuts to it do and do not work.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch03_catalog.html">Ch 3 · The 6802-Graph Catalog</a>
+    <a class="next" href="../part2_hunt/ch04_sat.html">Ch 4 · SAT &amp; Constraint Attacks</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 3½ · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+<script>
+/* ---------- Conference-relation checker (order-6 Paley/GF(5)) ---------- */
+(function () {
+    "use strict";
+    const n = 6;
+    // Symmetric conference matrix of order 6 (Paley, border + GF(5) core).
+    // chi(x) for GF(5): QR = {1,4}. Core Q[a][b] = legendre(a-b).
+    function legendre5(x) { x = ((x % 5) + 5) % 5; if (x === 0) return 0; return (x === 1 || x === 4) ? 1 : -1; }
+    function fresh() {
+        const C = Array.from({length: n}, () => new Array(n).fill(0));
+        for (let j = 1; j < n; j++) { C[0][j] = 1; C[j][0] = 1; }
+        for (let a = 0; a < 5; a++) for (let b = 0; b < 5; b++) if (a !== b) C[a + 1][b + 1] = legendre5(a - b);
+        return C;
+    }
+    let C = fresh();
+    const grid = document.getElementById("cm-grid");
+    const out = document.getElementById("cm-defect");
+
+    function sq(M) { // M^2
+        const R = Array.from({length: n}, () => new Array(n).fill(0));
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) { let s = 0; for (let k = 0; k < n; k++) s += M[i][k] * M[k][j]; R[i][j] = s; }
+        return R;
+    }
+    function render() {
+        const R = sq(C);
+        let defect = 0;
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) if (i !== j && R[i][j] !== 0) defect += R[i][j] * R[i][j];
+        let html = "";
+        for (let i = 0; i < n; i++) {
+            html += '<div>';
+            for (let j = 0; j < n; j++) {
+                const v = C[i][j];
+                const cell = i === j ? "0" : (v > 0 ? "+" : "−");
+                const clickable = i !== j;
+                const bad = i !== j && R[i][j] !== 0;
+                const col = i === j ? "#999" : (bad ? "#b00020" : "#2e7d32");
+                html += '<span data-i="' + i + '" data-j="' + j + '"' +
+                        ' style="display:inline-block;width:1.6em;text-align:center;color:' + col + ';' +
+                        (clickable ? 'cursor:pointer;' : '') + '">' + cell + '</span>';
+            }
+            html += '</div>';
+        }
+        grid.innerHTML = html;
+        out.textContent = defect + (defect === 0 ? "  (conference ✓)" : "");
+        out.style.color = defect === 0 ? "#2e7d32" : "#b00020";
+        grid.querySelectorAll("span[data-i]").forEach(function (el) {
+            const i = +el.dataset.i, j = +el.dataset.j;
+            if (i === j) return;
+            el.addEventListener("click", function () { C[i][j] = -C[i][j]; C[j][i] = -C[j][i]; render(); });
+        });
+    }
+    document.getElementById("cm-reset").addEventListener("click", function () { C = fresh(); render(); });
+    render();
+})();
+</script>
+
+</body>
+</html>

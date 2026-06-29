@@ -30,6 +30,7 @@
         <li><a href="ch01_target.html">1. The Target</a></li>
         <li><a href="ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -44,11 +45,13 @@
         <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
 </nav>
 
@@ -141,6 +144,33 @@ $|\mathrm{Aut}| = 666 = 2 \cdot 9 \cdot 37$.
     ones Maksimović–Rukavina classify completely; they are also the
     natural seeds for the switching and SAT attacks of Part II, because
     symmetry shrinks the search.
+    </p>
+</div>
+
+<div class="callout theorem">
+    <div class="callout-title">Theorem &nbsp;(any $6803$rd graph is rigid)</div>
+    <p>
+    The $40$ symmetric graphs are a <em>complete</em> classification.
+    Crnković–Maksimović (2020) and Maksimović–Rukavina (2022) prove there
+    are <em>exactly</em> $40$ graphs $\mathrm{SRG}(37,18,8,9)$ admitting
+    any nontrivial automorphism — via the Behbahani–Lam prime-order
+    orbit-matrix method, whose feasible prime orders are bounded by the
+    fixed-point inequality $\mathrm{fix} \le \tfrac{\max(\lambda,\mu)}{k-r}\,v
+    \approx 21$ and whose prototype linear systems are then solved
+    exhaustively. Hence
+    $\;6802 = \underbrace{40}_{\text{closed}} +
+    \underbrace{6762}_{\text{open lower bound}}$, and
+    <strong>a $6803$rd graph, if it exists, has
+    $|\mathrm{Aut}| = 1$.</strong>
+    </p>
+    <p>
+    <em>Why this rules out a whole family of attacks.</em> Every
+    symmetry-assuming method — orbit matrices, Cayley / partial-difference
+    sets, cyclotomy, character sums — reaches only graphs with a prescribed
+    automorphism. By the theorem none of them can produce $\#6803$; only
+    isomorph-free enumeration over fully asymmetric objects can. This is
+    the structural reason the hunt is hard, and why every symmetry-based
+    attack in Part II was destined to bounce off.
     </p>
 </div>
 

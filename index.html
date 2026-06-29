@@ -32,6 +32,7 @@
         <li><a href="part1_target/ch01_target.html">1. The Target</a></li>
         <li><a href="part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
         <li><a href="part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
     </ol>
     <h2>Part II — The Hunt</h2>
     <ol start="4">
@@ -46,11 +47,13 @@
         <li><a href="part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
         <li><a href="part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
         <li><a href="appendix/notation.html">A. Notation &amp; Glossary</a></li>
         <li><a href="appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
     </ol>
     <h2>Print</h2>
     <ol>
@@ -143,7 +146,10 @@
     <p>
     <strong>Part I — The Target.</strong> What $(37, 18, 8, 9)$ is, why
     it is a conference graph, what its spectrum forces, and exactly how
-    the $6802$-graph catalog was assembled and verified.
+    the $6802$-graph catalog was assembled and verified — closing with the
+    <em>two-graph reduction</em> (Ch 3½) that pins any $\#6803$ to a single
+    well-defined corner: a 195th regular two-graph on 38 points with
+    trivial automorphism.
     </p>
     <p>
     <strong>Part II — The Hunt.</strong> The twelve attacks, grouped by
@@ -154,9 +160,12 @@
     <p>
     <strong>Part III — Findings &amp; Frontier.</strong> What the hunt
     actually established (Ch 9), what would be needed to break the wall —
-    distributed cube-and-conquer, a Rust extension backtracker, or a
-    completeness proof (Ch 10), and the Docker images, scripts and data
-    that make every attack reproducible (Ch 11).
+    distributed cube-and-conquer, a GPU defect-repair finder, star
+    complements, or a completeness proof (Ch 10), the Docker images,
+    scripts and data that make every attack reproducible (Ch 11), and a
+    full audit of whether the search itself is <em>sound</em> — the
+    converged seven-tower campaign, with $&gt;92\%$ of the space now proven
+    empty (Ch 12).
     </p>
 
     <hr>

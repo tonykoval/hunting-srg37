@@ -143,6 +143,35 @@ distribute via <code>distribute_srg.sh</code>). This is the only route to a
 <em>completeness</em> proof, and if $\#6803$ is reachable by enumeration it
 is here.
 </p>
+<p>
+<strong>Campaign data through the size-$24$ wave</strong> (2026-07-02
+evening, running in parallel with the Conway-99 order-$7$ endgame on the
+same desktop): split rates $18\%$ at size $20$, $27\%$ at size $24$ — the
+branching factor is holding, no depth-collapse yet; a dedicated
+completion probe on the hardest size-$24$ node (the tower-$0$ staircase
+core) exceeded $8$ hours without exhausting. The completeness timeline
+therefore leans toward the distribute-or-new-pruning branch (the
+feasible-charpoly tables of Path 8 being the strongest untried pruning).
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Why the staircase towers are un-splittable — the isolated-vertex gauge</div>
+    <p>
+    A structural fact surfaced on 2026-07-02 while probing seeded searches:
+    <em>every</em> regular two-graph has a carrier with an isolated vertex
+    (switch at the neighbourhood of any point), and that carrier's row $0$
+    is all zeros — so it satisfies $e[0,k]=0$ for every $k$, i.e. it lies in
+    the <strong>all-zeros lexicographic cube at every cube depth</strong>.
+    The perpetual hard child of each tower (the "$j=0$ staircase") is
+    therefore not an accident of the solver: cube $0$ provably contains a
+    representative labeling of <em>every</em> two-graph class — known and
+    unknown — at every split level. There is no "aim at a known graph's
+    cube" shortcut, and the staircase can only be settled by genuine
+    refutation depth. (Validated at $n=46$, where the seeded window search
+    escapes seed classes — the analogous $38$-point windows are
+    switching-rigid, so at $37/38$ the enumeration remains the only path.)
+    </p>
+</div>
 
 <h3>2. GPU stochastic-local-search finder &nbsp;<em>(launched 2026-07-02)</em></h3>
 <p>
@@ -159,14 +188,19 @@ the complement to Path 1, not a substitute: a cheap parallel shot at a
 witness while the CPU grind chases completeness.
 </p>
 <p>
-<strong>Now live</strong> (<code>srg37_sls_sweep.ps1</code>): the finder
-runs on the RTX 5060 Ti at ${\sim}56{,}000$ candidates/s, pinned not to the
+<strong>Now live</strong> (<code>srg37_sls_sweep2.ps1</code>): the finder
+runs on the RTX 5060 Ti, pinned not to the
 old $16$-edge cubes but to the <em>deepest surviving subspace</em> of the
 recursive campaign — the seven tower staircase cores at cube size $24$
 ($678$ free Seidel entries), rotating hourly with fresh seeds and the
 defect-repair chain enabled. If $\#6803$ exists, the fractal argument says
 this is where it hides; every hit is CPU re-verified and deduped against
-the $6802$ catalog before any claim.
+the $6802$ catalog before any claim. <em>Ops note (hard-won):</em> under
+CPU contention the CPU-side Lin–Kernighan chain starves and can wedge a
+run for hours — the v2 sweep throttles it (depth $40$, every $1000$
+iterations), doubles the population to $8192$ (shifting work onto the
+GPU), and wraps every run in a $75$-minute watchdog so the tower rotation
+can never stall silently. Zero hits so far.
 </p>
 
 <figure>

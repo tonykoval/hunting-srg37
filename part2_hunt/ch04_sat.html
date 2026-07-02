@@ -301,6 +301,18 @@ in seconds; the hard residual is isolated for distribution. State as of
 </table>
 
 <p>
+<strong>Update (2026-07-02):</strong> the engine has since been rebuilt
+around two findings — the static row-lex chain extended to all $36$
+consecutive row pairs ($50$–$70\times$ faster time-to-exhaust on hard
+cubes, model set verified bit-identical) and a <em>recursive</em>
+autosplit driver ($600$ s per node, timeout ⇒ $16$ finer children;
+$15/16$ of a hard cube's children exhaust in ${\sim}13$ s). Over $98\%$ of
+the tower space is now permanently proven empty and the residual campaign
+runs on a single desktop. The full account is in
+<a href="../part3_frontier/ch10_frontier.html">Chapter 10</a>.
+</p>
+
+<p>
 The $\sim\!1.25$ M-clause two-graph encoding plus dynamic canonicity is
 the one classical attack that genuinely bites: more than $92\%$ of the
 space is now <em>provably</em> empty. The remaining $\sim\!87$ hard cubes

@@ -104,23 +104,47 @@ changes is the last one.
 
 <h2>10.2 &nbsp; The plan, ranked</h2>
 
-<h3>1. Distributed SMS+CCL on the seven towers &nbsp;<em>(the live campaign)</em></h3>
+<h3>1. Recursive SMS cube-and-conquer on the seven towers &nbsp;<em>(the live campaign — 50–70× faster since 2026-07-01)</em></h3>
 <p>
 The canonicity-propagated cube-and-conquer of $\S$4.4 has run for months
-and <em>converged</em>: more than $92\%$ of the two-graph(38) space is now
-proven empty, and the search has reduced to the seven un-splittable towers
+and <em>converged</em>: the search reduced to the seven un-splittable towers
 — at cube size $16$, <strong>1653 of 1792 sub-cubes exhausted, ${\sim}87$
-hard, $0$ new</strong> (2026-06-29). The remaining work is precisely the
-${\sim}87$ cluster-scale cubes: recursively re-split each (cube size
-$18$–$20$) so most fragments exhaust, isolating the true hard core, and
-fan the fragments across machines (the work-list is emitted by
-<code>srg37_remaining_work.sh</code>; per-machine slices by
-<code>distribute_srg.sh</code>). This is the only route to a
+hard, $0$ new</strong> (2026-06-29). What was "cluster-scale" then changed
+character on 2026-07-01 with two engine findings:
+</p>
+<div class="callout theorem">
+    <div class="callout-title">The lex-chain lesson (2026-07-01)</div>
+    <p>
+    Instrumenting the propagator showed the pairwise canonicity check costs
+    only $0.4\%$ of wall time on hard cubes — the wall was <em>pure CDCL
+    depth</em>. Extending the static row-lex chain from its historical cutoff
+    (rows $1$–$15$) to <strong>all $36$ consecutive row pairs</strong> hands
+    that ordering to the solver as unit-propagatable clauses:
+    time-to-exhaust on hard cubes fell <strong>$98.3\,\mathrm{s} \to
+    2.0\,\mathrm{s}$</strong> and <strong>$104.8 \to 1.5$</strong>
+    (${\sim}50$–$70\times$). Sound because every chain constraint is implied
+    by the all-pairs row-lex canonicity the model check already enforces —
+    the enumerated model set was verified bit-identical at $n=10$ ($29$
+    models) and $n=14$ ($1003$). The same trick should transfer to
+    <em>any</em> row-lex SMS enumeration.
+    </p>
+</div>
+<p>
+On top of that the driver is now <em>recursive</em>
+(<code>srg37_autosplit.sh</code>): every node gets a $600$-second budget;
+a timeout pushes its $16$ children ($4$ more structural cube edges) onto a
+shared queue. Measured shed rate: $15/16$ children of a hard cube exhaust
+in ${\sim}13$ seconds; the hard core isolates itself $16\times$ tighter per
+level. As of 2026-07-02, <strong>over $98\%$ of the tower space is
+permanently proven empty</strong> and the campaign runs on a single desktop
+(hard-child branching factor ${\sim}2$–$3$ per level is the remaining
+uncertainty: depth-collapse ⇒ weeks; persistent fractal ⇒ months, or
+distribute via <code>distribute_srg.sh</code>). This is the only route to a
 <em>completeness</em> proof, and if $\#6803$ is reachable by enumeration it
-is here. Estimated cost: a small pool of desktops over weeks.
+is here.
 </p>
 
-<h3>2. GPU stochastic-local-search finder &nbsp;<em>(the fast long shot)</em></h3>
+<h3>2. GPU stochastic-local-search finder &nbsp;<em>(launched 2026-07-02)</em></h3>
 <p>
 A regular two-graph(38) is a $\pm1$ Seidel matrix with $S^2 = 37\,I$, so
 the hunt for one is the minimisation of the defect
@@ -133,6 +157,16 @@ $8$-flip-perturbed Paley$(37)$ all the way back to $f=0$ in validation.
 It can only ever <em>find</em> a graph, never prove one absent, so it is
 the complement to Path 1, not a substitute: a cheap parallel shot at a
 witness while the CPU grind chases completeness.
+</p>
+<p>
+<strong>Now live</strong> (<code>srg37_sls_sweep.ps1</code>): the finder
+runs on the RTX 5060 Ti at ${\sim}56{,}000$ candidates/s, pinned not to the
+old $16$-edge cubes but to the <em>deepest surviving subspace</em> of the
+recursive campaign — the seven tower staircase cores at cube size $24$
+($678$ free Seidel entries), rotating hourly with fresh seeds and the
+defect-repair chain enabled. If $\#6803$ exists, the fractal argument says
+this is where it hides; every hit is CPU re-verified and deduped against
+the $6802$ catalog before any claim.
 </p>
 
 <figure>
@@ -215,6 +249,40 @@ its own, but a cube-killer that complements the SMS search on exactly the
 ${\sim}87$ residual cubes.
 </p>
 
+<h3>8. Feasible-characteristic-polynomial tables &nbsp;<em>(new — from the 2026 literature)</em></h3>
+<p>
+A strict sharpening of Path 7, surfaced by a 2026-07 literature sweep. For
+any order-$m$ principal submatrix $S_m$ of the putative conference matrix
+with $m \ge 20$, interlacing against the two-eigenvalue spectrum
+$\{\pm\sqrt{37}\}$ forces the <em>exact factorisation</em>
+$$\chi_{S_m}(x) \;=\; (x^2-37)^{\,m-19}\cdot q(x),$$
+where $q$ is a monic <em>integer</em> polynomial of degree $38-m$,
+real-rooted with all roots in $[-\sqrt{37},\sqrt{37}]$ — further filtered
+by $a_1=0$, $a_2=-\binom{m}{2}$, and the Greaves–Yatsyna $2$-adic
+congruences on $\chi(x-1)$. The 2025 LP enumeration algorithms of
+Greaves–Syatriadi (arXiv:2504.09241, the machinery behind the equiangular-
+line maxima in dimensions $17$–$20$) make the <em>complete finite table</em>
+of feasible polynomials precomputable for every level $m=20,\dots,37$: any
+partial matrix whose completed principal block falls off-table is soundly
+refuted. Strictly stronger than interval interlacing $+$ the de Caen
+identity at those levels; an endgame propagator for exactly the deep hard
+cubes the recursion isolates. Untried — the top implementation candidate
+if the fractal persists.
+</p>
+
+<p>
+<em>Tried and closed since the first edition (2026-07-02):</em> the CDCL(⊕)
+solver <strong>Xorcle</strong> (arXiv:2605.15002) — native parity-equation
+branching with $\mathrm{Res}(\oplus)$ learning, on paper the exact match for
+this parity-structured wall — was benchmarked on exported cube instances
+(<code>--export-cnf-cube</code>). Verdict: the prototype stores every
+literal as a dense bit-vector over all variables (${\sim}25$ GB at $n=38$)
+and, at $n=14$ where memory fits, produced no answer in $300$ s where the
+SMS engine fully enumerates in $10$ s. The Tseitin-scaling result does not
+transfer to cardinality-parity mixes; the dead-ledger grows by one honest
+entry.
+</p>
+
 <h2>10.3 &nbsp; Two ways this ends</h2>
 
 <div class="callout theorem">
@@ -269,13 +337,15 @@ file, ready to run.
         { fam: "SAT", attack: "de Caen rich-Aut survey", budget: "40 seeds × 180 s", result: "all time out (Wall A)", out: "exhausted" },
         { fam: "SAT", attack: "Smart Cubing (prerun + conquer)", budget: "~1024 cubes × 60 s", result: "all UNKNOWN", out: "exhausted" },
         { fam: "SAT", attack: "SMS+CCL two-graph(38), 7 towers ×256", budget: "1792 cubes, 24h ea", result: "1653 empty · ~87 hard · 0 new", out: "promising" },
+        { fam: "SAT", attack: "v2 engine: full lex chain + recursive autosplit", budget: "live since 2026-07-01", result: "50–70× faster; >98% of tower space proven empty", out: "promising" },
+        { fam: "SAT", attack: "CDCL(⊕) Xorcle on exported cubes", budget: "n=14…38, 300–1200 s", result: "OOM ≥ n=22; n=14 undecided in 300 s", out: "exhausted" },
         { fam: "SAT", attack: "Neighbour extension (CP-SAT + kissat)", budget: "60 cands × 30–300 s", result: "0 SAT, 0 refuted", out: "exhausted" },
         { fam: "Switching", attack: "Godsil–McKay single-cell (4–12)", budget: "exhaustive + sampled", result: "0 valid cells", out: "exhausted" },
         { fam: "Switching", attack: "Godsil–McKay multi-cell", budget: "50k × (4,4)/(4,6)/(6,6)", result: "0 valid cell pairs", out: "exhausted" },
         { fam: "Search", attack: "Catalog basin-hopping (LK-2)", budget: "360 × 20 × 5000", result: "0 novel; 4% recover seed", out: "exhausted" },
         { fam: "Search", attack: "Simulated annealing", budget: "120 × 50 000", result: "best viol ≥ 340", out: "exhausted" },
         { fam: "Search", attack: "Euclidean embedding (Adam, ℝ¹⁸)", budget: "70 trials", result: "binarised viol ~1000", out: "exhausted" },
-        { fam: "Search", attack: "GPU SLS + defect-repair (Seidel S²=37I)", budget: "prepared, idle GPU", result: "recovers Paley to f=0; not yet launched", out: "promising" },
+        { fam: "Search", attack: "GPU SLS + defect-repair (Seidel S²=37I)", budget: "live, RTX 5060 Ti", result: "56K cand/s in the deepest surviving cubes; 0 hits yet", out: "promising" },
         { fam: "LLM", attack: "AlphaEvolve (GPT-5)", budget: "2 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "cpro1 algebraic constructor", budget: "10 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "Multi-agent debate (4 roles)", budget: "5 / 5 rounds", result: "best viol 1148", out: "exhausted" },

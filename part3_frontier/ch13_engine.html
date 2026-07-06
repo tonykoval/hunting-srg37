@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 13 · The Engine — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+<div class="book-title-string">Hunting SRG(37)</div>
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="../part0_primer/prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="../part0_primer/prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="../part0_primer/prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3&#189;. The Two-Graph Reduction</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="ch13_engine.html">13. The Engine</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="../appendix/notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="../appendix/bibliography.html">B. Bibliography</a></li>
+        <li><a href="../appendix/theorems.html">C. Theorems &amp; Proofs</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Chapter 13 · Part III</span>
+    The Engine — one week, three orders of magnitude
+</h1>
+
+<p class="lead">
+In the first week of July 2026 the live campaign's engine was rebuilt four
+times, each rebuild validated before deployment and each dead end closed by a
+controlled experiment. This chapter is the engineering diary of that week —
+what made the search ${\sim}1000\times$ faster, what <em>didn't</em> work and
+how we know, and how the whole edifice was then adversarially audited. It is
+the chapter to read if you want to run a search like this yourself.
+</p>
+
+<h2>13.1 &nbsp; Where the time actually goes</h2>
+
+<p>
+The week began with an instrumented measurement that overturned the working
+assumption. The SMS canonicity propagator — the sophisticated part — was
+charged with the slowness of the hard cubes. Timing counters said otherwise:
+on hard cubes the pairwise canonicity check cost <strong>0.4% of wall
+time</strong>. The wall was raw CDCL depth. Every subsequent win came from the
+same move applied to a different layer: <em>take knowledge the solver
+eventually derives, and hand it over in a form it can use immediately.</em>
+</p>
+
+<table>
+    <thead><tr><th>Lever</th><th>Mechanism</th><th>Measured effect</th></tr></thead>
+    <tbody>
+        <tr><td><strong>Full static lex chain</strong> (<code>LEX_CHAIN_ROWS=37</code>)</td>
+            <td>row-lex ordering as unit-propagatable clauses instead of propagator callbacks</td>
+            <td>$98.3\,\mathrm{s}\to 2.0\,\mathrm{s}$, $104.8\to 1.5$ on hard cubes (${\sim}50$–$70\times$); model sets bit-identical at $n=10,14$</td></tr>
+        <tr><td><strong>Persistent solver</strong> (cube literals as <em>assumptions</em>)</td>
+            <td>one CaDiCaL instance per subtree; learned clauses survive across the DFS</td>
+            <td>easy nodes $12\,\mathrm{s}\to 0.03\,\mathrm{s}$; subtree-to-depth-24 $802\,\mathrm{s}$ vs ${\sim}14{,}200\,\mathrm{s}$ (${\sim}17\times$); warm clauses <em>halve</em> the hard-node rate</td></tr>
+        <tr><td><strong>Clause pools</strong> (<code>write_dimacs</code> → <code>BASE_CNF</code>)</td>
+            <td>derived units + irredundant DB + blocking clauses persist across subtrees and machines</td>
+            <td>size-40 leaves that were 60 s timeouts fall at $0.0\,\mathrm{s}$ once pools mature; pool file = portable warm-start</td></tr>
+    </tbody>
+</table>
+
+<p>
+Two soundness arguments carry all three. The chain is <em>implied</em> by the
+all-pairs row-lex canonicity the model check enforces, so adding it cannot
+lose a class. The pool is an equisatisfiable strengthening: assumptions are
+decisions in CaDiCaL, so no assumption-conditioned fact can ever become a
+root-level unit — verified in the vendored solver source during the audit
+(§13.4). Blocking clauses persisting across runs is not a bug but the
+campaign's dedup memory: every blocked labeling was verified, descended, and
+tested against the catalog at first contact.
+</p>
+
+<h2>13.2 &nbsp; The experiment discipline — seven verdicts</h2>
+
+<p>
+Every idea got a <em>positive control</em> (an instance whose answer is
+known, run first) or an exact A/B before touching the live campaign. The
+week's scoreboard:
+</p>
+
+<table>
+    <thead><tr><th>Idea</th><th>Verdict</th><th>The decisive observation</th></tr></thead>
+    <tbody>
+        <tr><td>Full lex chain</td><td style="color:#2e7d32"><strong>deployed</strong></td><td>50–70× with bit-identical model sets</td></tr>
+        <tr><td>Persistent solver + pools</td><td style="color:#2e7d32"><strong>deployed</strong></td><td>exact 1003-model partition at $n=14$; ledger-identical statuses on a real subtree</td></tr>
+        <tr><td>CDCL(⊕) solver (Xorcle)</td><td style="color:#b00020">dead</td><td>stores each literal as a dense bit-vector: 25 GB at $n=38$; at $n=14$ undecided in 300 s where the engine enumerates in 6</td></tr>
+        <tr><td>Seeded neighborhood extension</td><td style="color:#b00020">dead</td><td>positive control (a <em>provably satisfiable</em> instance) unsolved in 3600 s — Wall A survives 226 pinned bits</td></tr>
+        <tr><td>Spectral shield (interlacing cuts, 3 layers)</td><td style="color:#b00020">dead for CDCL</td><td>A/B on the staircase: 11 hard vs 11 hard — the cardinality encoding already propagates the ratio bound</td></tr>
+        <tr><td>Full-$S_n$ nauty canonicity (in-search)</td><td style="color:#b00020">dead</td><td>violation-clause storms: $n=14$ DNF in 180 s vs 5.7 s</td></tr>
+        <tr><td>Layer-2 symmetry routes (two-graph Aut)</td><td style="color:#b00020">closed by proof</td><td>fixed-point-free groups on 38 points divide 38 — all three cases previously settled</td></tr>
+    </tbody>
+</table>
+
+<div class="callout definition">
+    <div class="callout-title">The tell-tale signals (worth memorizing)</div>
+    <p>
+    Each null announced itself with a distinctive symptom before any deep
+    analysis: a supposedly-hard instance returning <strong>UNSAT in 0.0
+    seconds</strong> means your constraints are not the ones you think
+    (wrong edge basis, foreign canonical order); a positive control returning
+    <strong>0 models</strong> means a pruning layer is unsound for the mode
+    you are running; <strong>violation counters exploding</strong> while the
+    trail stays shallow means two symmetry-breaking notions are fighting.
+    Cheap controls convert all three from silent theorem-killers into
+    same-day bug reports.
+    </p>
+</div>
+
+<h2>13.3 &nbsp; The isolated-vertex gauge, and why the staircase is the whole game</h2>
+
+<p>
+The week also produced the structural lemma of Chapter 10 (§10.2): switching
+any two-graph at the neighbourhood of a point yields a carrier with an
+isolated vertex, whose row is all zeros — so <em>every</em> class has a
+representative in the all-zeros lexicographic cube at <em>every</em> depth.
+The perpetually-hard staircase is therefore not solver weakness but theorem:
+it provably hosts a copy of everything, including $\#6803$ if it exists. Two
+consequences run the campaign: the staircase residue is exactly where the
+find-side probability concentrates (row-lex-minimal representatives have
+sparse early rows), and no "aim at a known graph's cube" shortcut can exist.
+</p>
+
+<h2>13.4 &nbsp; The audit — correctness as a checked property</h2>
+
+<p>
+With months of certificates accumulating, the final act of the week was an
+adversarial audit: three independent reviews of the mathematical core
+(propagator clause construction, acceptance, chain, cuts), the persistent-
+solver machinery (assumption lifecycle, pool semantics, blocking order), and
+the certificate accounting (the full partition tree). The mathematical core
+came back <strong>clean</strong>, with mechanical evidence: a 30,000-trail
+stateful fuzzer (81,246 emitted clauses, zero kill a canonical assignment),
+exhaustive acceptance verification at small $n$, and a written proof that the
+string-minimal labeling survives every pairwise constraint and the gauge.
+</p>
+
+<p>
+The audit's real catch was operational: four <em>silent-failure</em>
+mechanisms that could lose coverage or — worse — a discovery, while still
+printing EXHAUSTED. A missing catalog file degraded to "smoke mode" and would
+have blocked a found $\#6803$ without ever descending it; a failed nauty
+subprocess did the same for one model; a killed worker destroyed its popped
+work item; and ten nodes had in fact been orphaned by earlier driver
+restarts. All four are now hard failures or auto-recovered, the ten orphans
+were requeued, the deleted round-2 tower certificates were re-proven
+(249/249), and a retroactive sweep confirmed all 5,242 historical processes
+ran with the full catalog. The accounting itself is guarded by
+<code>srg37_cover_check.py</code>, which walks the entire split tree and
+currently reports:
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">The auditor's line</div>
+    <p><code>RESULT: CLEAN — every tower node is certified, split-covered,
+    hard-ledgered, queued, or in flight — exit 0</code></p>
+    <p>
+    The driver now runs this check before it may print a completion banner.
+    When the queue finally drains, the claim "exactly 6802" will not rest on
+    a log line a human believes, but on a program that has already caught
+    real gaps refusing to pass false ones.
+    </p>
+</div>
+
+<h2>13.5 &nbsp; What a reader should take away</h2>
+
+<p>
+Three transferable habits. <strong>Measure before optimizing</strong> — the
+propagator "bottleneck" was 0.4% of wall, and the real fix (the chain) took
+an afternoon. <strong>Give every idea a control that can kill it same-day</strong>
+— the week ran seven experiments, deployed three, and lost no compute to the
+four that failed, because each failure was caught by a designed signal.
+<strong>Audit the boring parts</strong> — nothing in the elegant mathematics
+was broken; everything dangerous lived in file loading, process kills, and
+bookkeeping, exactly where nobody looks and exactly where a theorem dies.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="ch12_soundness.html">Ch 12 · Is the Search Correct?</a>
+    <a class="next" href="../appendix/notation.html">Appendix A · Notation</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Chapter 13 · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

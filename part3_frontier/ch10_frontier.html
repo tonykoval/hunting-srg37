@@ -154,6 +154,25 @@ therefore leans toward the distribute-or-new-pruning branch (the
 feasible-charpoly tables of Path 8 being the strongest untried pruning).
 </p>
 
+<p>
+<strong>Nine days on (2026-07-11):</strong> the persistent-solver campaign
+with clause pools has banked <strong>$110{,}817$ exhausted-node
+certificates</strong> (${\sim}14$K/day on three workers), driving every
+branch to size $40$ and accumulating the true irreducible residue —
+<strong>$16{,}801$ HARD leaves at size $40$</strong> (${\sim}13\%$ of deep
+nodes, stable). The accounting auditor reports CLEAN continuously, the
+campaign survived two host shutdowns and an adversarial code review
+losslessly (the review found and fixed, among fourteen items, a salvage
+path that could have silently swallowed a found $\#6803$ in a killed log),
+and a self-healing supervisor now relaunches every engine hourly without
+human attention. The endgame decision is unchanged in kind, sharpened in
+number: grind the residue solo (months), warm-escalate it (the pools'
+instant-refutation effect makes those $16{,}801$ leaves far cheaper than
+their count suggests), or shard it across machines (kit ready). Zero
+candidates, zero false emissions, and — post-review — zero known
+mechanisms by which a hit could be lost.
+</p>
+
 <div class="callout theorem">
     <div class="callout-title">Why the staircase towers are un-splittable — the isolated-vertex gauge</div>
     <p>

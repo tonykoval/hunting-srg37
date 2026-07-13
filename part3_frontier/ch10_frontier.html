@@ -173,6 +173,59 @@ candidates, zero false emissions, and — post-review — zero known
 mechanisms by which a hit could be lost.
 </p>
 
+<div class="callout definition">
+    <div class="callout-title">The residue wall (2026-07-13) — seven levers, seven verdicts in one day</div>
+    <p>
+    Twelve days in, the endgame decision got its data — and every
+    brute-force branch failed it. The open residue stood at
+    <strong>$14{,}827$ HARD leaves at size $40$</strong> (dedup-corrected;
+    growing as the main grind surfaces more towers, $121{,}708$ certificates
+    banked). Seven escalation levers were tested against it in a single day,
+    each to a clean verdict:
+    </p>
+    <ol>
+        <li><strong>Budget $\times 10$</strong> ($600$ s, warm pools):
+            $0/24$ leaves closed. The pools' instant-refutation effect,
+            decisive on ordinary nodes, does not touch this class.</li>
+        <li><strong>Orbitopal fixing</strong> (satsuma 1.4, the
+            TACAS-2026 Distinguished Paper method): dejavu finds
+            <em>zero</em> residual formula symmetry — the full row-lex
+            chain + gauge + cube units is already symmetry-saturated.
+            A null result that doubles as a validation of the encoding.</li>
+        <li><strong>kissat 4.0.4</strong> on the exported cube CNF:
+            timeout at $1200$ s.</li>
+        <li><strong>CaDiCaL 3.0</strong> (BVA-by-default, the SAT
+            Competition 2025 UNSAT-track winner): timeout at $1200$ s.
+            Solver vintage is not the wall.</li>
+        <li><strong>$16\times$ deeper splitting</strong> (the four missing
+            first-ten pairs, size $44$): only ${\sim}11\%$ of children
+            close — the $15/16$ shed rate that powers the whole recursive
+            campaign <em>collapses</em> on this class. Each hard leaf
+            becomes ${\sim}14$ hard children: splitting <em>grows</em>
+            the residue.</li>
+        <li><strong>Run-to-completion probe</strong>: two known-hard
+            leaves, warm pools, no verdict after $4$ hours each. True
+            leaf cost exceeds $4$ h ⇒ the residue is $>2{,}800$
+            box-days <em>before</em> growth — beyond any realistic
+            shard fleet.</li>
+        <li><strong>A fresh split axis</strong> (edges among vertices
+            $10$–$13$, untouched by the $40$-edge basis): $0/64$ children
+            closed. The towers are hard along <em>every</em> tested
+            cube direction, exactly as the isolated-vertex gauge below
+            predicts.</li>
+    </ol>
+    <p>
+    The conclusion is sharper than "months vs. distribute": completing
+    the enumeration is <strong>no longer a compute problem</strong>. What
+    remains is algorithmic — canonical pruning of <em>partial</em>
+    assignments (the RCL/SAT-nauty route, untouched by all seven
+    verdicts), a semantically different decomposition than edge cubes, or
+    an honest write-up of this frontier. The main grind continues
+    regardless: every certificate is permanent, and the towers it maps
+    are exactly where a $\#6803$, if it exists, must live.
+    </p>
+</div>
+
 <div class="callout theorem">
     <div class="callout-title">Why the staircase towers are un-splittable — the isolated-vertex gauge</div>
     <p>

@@ -226,6 +226,70 @@ mechanisms by which a hit could be lost.
     </p>
 </div>
 
+<div class="callout definition">
+    <div class="callout-title">Day two at the wall (2026-07-14) — the proof-system axis, march cubes, and the pool-poison</div>
+    <p>
+    The next day tested the two axes the first seven verdicts never touched,
+    with the help of a genuinely new tool for each.
+    </p>
+    <p>
+    <strong>Changing the proof system.</strong> All seven refuted levers
+    lived inside <em>resolution</em> — and the instance's heart is the
+    exactly-$18$ counting layer, precisely where resolution needs
+    exponentially long proofs and <em>cutting planes</em> often needs only
+    polynomial ones. A new exporter (<code>--export-opb-cube</code>) emits
+    the exact live cube instance with the cardinality <em>native</em> —
+    $3.9$ MB of pseudo-Boolean constraints instead of $26$ MB of totalizer
+    CNF — validated by decode-verifying a $n=10$ model and confirming the
+    provably-nonexistent $n=12$ case UNSAT. The verdict from roundingsat:
+    <strong>UNKNOWN at one hour, UNKNOWN at the full four-hour parity
+    budget</strong>. The counting-layer hope did not materialize; the
+    proof-system axis is dead at any budget this campaign can afford.
+    </p>
+    <p>
+    <strong>Letting lookahead pick the split.</strong> Every prior split
+    used fixed edge bases chosen by hand. <code>march_cu</code> — the
+    classic cube-and-conquer cuber — picked its own splitting variables by
+    propagation lookahead from all $159$k (edges, agree-variables, chain
+    auxiliaries) and decomposed the four-hour leaf into $258$ cubes in
+    seconds, refuting several subtrees during cubing itself.
+    <strong>$42\%$ of the cubes close in under $30$ seconds</strong> — the
+    best per-budget decomposition found in the entire campaign (fixed edges
+    managed $11\%$). But the remaining $58\%$ resist kissat and the warm
+    engine <em>identically</em>: the hard core is decomposition-invariant
+    <em>and</em> solver-invariant. The fractal does not care how you cut it.
+    </p>
+    <p>
+    <strong>The pool-poison.</strong> The day's real discovery came from an
+    anomaly: fed the same march cubes, the warm engine scored $0/24$ where
+    cold kissat scored $10/24$ — <em>worse</em> tooling should not beat
+    better. A three-arm isolation pinned it in minutes: the same cube
+    closes in $3$ seconds bare and sits unsolved after $130$ seconds with
+    the $20$ MB warm clause pool loaded. The pools that make ordinary
+    edge-cube nodes instant — the campaign's proudest optimization —
+    <strong>bury</strong> re-attacks that enter the space along a different
+    axis. A scope check re-ran the probe leaves pool-free: still HARD at
+    $600$ s, so the wall itself stands uncontaminated — but every future
+    escalation, probe, and slice run is now pool-free by default. The
+    lesson generalizes: an optimization tuned for one traversal regime can
+    be actively hostile in another, and only a controlled isolation tells
+    you which regime you are in.
+    </p>
+    <p>
+    <strong>The plan from here.</strong> Three cards remain, in order:
+    (1) the <em>RCL canonicity port</em> — prefix-hereditary canonical
+    pruning of partial assignments, the one order-of-magnitude idea in the
+    literature untouched by all eleven verdicts; (2) the <em>cluster probe
+    fleet</em> — self-contained docker shards (kit ready) running disjoint
+    residue leaves to completion at $96$-hour caps, pool-free, to buy the
+    leaf-cost distribution that prices any brute-force ending; (3) the
+    <em>SAT-2026 harvest</em> (July 20–23) — the cardinality-encoding and
+    clause-sharing camera-readies land days from this writing. The main
+    grind continues throughout: certificates are permanent, and the towers
+    are still exactly where a $\#6803$ must live.
+    </p>
+</div>
+
 <div class="callout theorem">
     <div class="callout-title">Why the staircase towers are un-splittable — the isolated-vertex gauge</div>
     <p>

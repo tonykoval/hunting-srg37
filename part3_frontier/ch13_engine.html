@@ -312,6 +312,21 @@ the solver is actually trying to satisfy.
             <td>$2/14$</td>
             <td>Not every semantic split is useful; retire weak axes quickly.</td>
         </tr>
+        <tr>
+            <td>Production level 1: $64$ roots</td>
+            <td>$875/1024$ in at most $9$ s each</td>
+            <td>$85.45\%$ shed; $149$ slices promoted, zero SAT.</td>
+        </tr>
+        <tr>
+            <td>Representative semantic staircase</td>
+            <td>$15/16$ at twelve successive levels</td>
+            <td>One narrow survivor per level, not exponential growth.</td>
+        </tr>
+        <tr>
+            <td>Two counters at a time</td>
+            <td>${\sim}36$ s per four bits</td>
+            <td>$25$--$35\%$ faster than one sixteen-way stage.</td>
+        </tr>
     </tbody>
 </table>
 
@@ -320,12 +335,50 @@ This changed the distributed plan. A standalone Rust tool now constructs and
 audits the theorem-critical partition. A cluster shard contains a generic
 chain-strengthened CNF, an exact $40$-edge root assignment, and all sixteen
 agreement-counter children. A root may be banked as exhausted only when all
-sixteen tags are present and UNSAT; timeout leaves remain explicit residue
+children of every recursive partition are present and UNSAT; timeout leaves remain explicit residue
 for the next semantic level. The jobs deliberately run <strong>without clause
 pools</strong>: the pool anomaly of &sect;13.8 showed that learned state from the
 edge-cube traversal can slow a cross-axis re-entry by two orders of magnitude.
 The first production kit holds $64$ hard roots ($1024$ independent jobs),
 split into four restart-safe Docker archives.
+</p>
+
+<p>
+Certificate accounting does not trust the recursive job tags. The Rust
+aggregator reads the immutable definitions, reconstructs the exact CE40
+prefix from each root index, and checks that every claimed split uses the
+same one to four fresh variables under all $2^k$ truth assignments. Thus a
+certificate node may have $2$, $4$, $8$, or $16$ children without weakening
+coverage. Missing job
+definitions and malformed DONE statuses are contradictions. New archives
+hash the base CNF, solver, job file, and manifest; the job and manifest hashes
+are repeated in the ledger's start record.
+</p>
+
+<p>
+The controlled persistent-conquer experiment is now the next-layer engine.
+The siblings of one verified parent partition share a CaDiCaL instance
+through assumptions, but no learned state crosses parent boundaries. On
+c27813003392 it reproduced the
+independent Kissat status vector exactly (UNSAT except slices $11,12,15$) and
+reduced measured solver time from $92$ to $35.3$ seconds. This is the right
+kind of clause sharing&mdash;logically global inside one immutable formula and
+local to one partition. Deep invocations carry explicit ancestor definitions
+and resume ledgers, so the auditor can trace every closure to the CE40 root.
+A four-root validation subsequently matched all $64/64$ independent Kissat
+statuses and used $73.9$ solver-seconds versus $236$ ($3.19\times$).
+</p>
+
+<p>
+The production staircase asks two counter questions at a time. Four-way
+stages were faster than both binary probing (too many hard-side timeouts) and
+sixteen-way stages (too many easy siblings). It first completes all threshold
+levels of the active pair's four quarter counts, including the alternating
+edge thresholds that no uniform offset reaches, then completes complementary
+subcounts. A fresh pair $(2,4)$ left two of four children hard, whereas the
+active $(2,3)$ pair continued to leave one; pair rotation is therefore held
+in reserve. Four restart-safe supervisors wait behind the current depth-$3$
+queues and refuse to refine an incomplete parent ledger.
 </p>
 
 <p>
@@ -345,11 +398,17 @@ canonical-state reuse as a separate research line.
     <div class="callout-title">Current frontier</div>
     <p>
     No new SRG(37) and no completeness theorem has appeared in the literature.
-    The live audited search contains $122{,}940$ exhausted nodes, $18{,}123$
-    explicit hard leaves, $11{,}371$ queued nodes, and no coverage gaps. The
+    The live audited search contains $123{,}238$ exhausted nodes, $18{,}171$
+    explicit hard leaves, $11{,}370$ queued nodes, three in flight, and no
+    coverage gaps. The
     semantic split is the first post-wall method to preserve high closure at a
-    second recursive level, so cluster time should be spent there rather than
-    on another uniform budget increase.
+    second recursive level. Its completed $64$-root level-$1$ sample closed
+    $85.45\%$ of slices within $9$ seconds and emitted no candidate. At the
+    latest depth-$3$ checkpoint, $1064/1183$ completed jobs were UNSAT and none
+    was SAT. The provisional full-residue price remains in the low-thousands
+    of CPU-hours, with the measured deepest-tail cost now reduced by roughly
+    one third; cluster time should be spent there rather than on another
+    uniform budget increase.
     </p>
 </div>
 

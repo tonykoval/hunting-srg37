@@ -290,6 +290,65 @@ mechanisms by which a hit could be lost.
     </p>
 </div>
 
+<div class="callout definition">
+    <div class="callout-title">Day three at the wall (2026-07-16) &mdash; split the counting proof itself</div>
+    <p>
+    March's most useful split variable, $17221$, turned out not to be an edge
+    but an internal totalizer counter. That observation produced the first
+    decomposition to keep its strength recursively: four balanced counters
+    for the row-pair $(2,3)$ closed $13/16$ branches of a calibration root,
+    and four child counters closed $43/48$ descendants. An unrelated pair
+    managed only $2/14$, so the winning rule is specific: descend the same
+    effective counting tree rather than stacking arbitrary constraints.
+    </p>
+    <p>
+    The first production sample covered $64$ HARD@40 roots. Across its
+    $1024$ top slices, <strong>$875$ were UNSAT ($85.45\%$), $149$ were
+    promoted, and no SAT candidate appeared</strong>. Every UNSAT verdict
+    arrived within $9$ seconds (median $3$ seconds), making a $10$-second
+    first tier lossless on this sample. At the latest depth-$3$ checkpoint,
+    $1183/2384$ slices had completed: <strong>$1064$ UNSAT, $119$ TIMEOUT,
+    $0$ SAT</strong> ($89.9\%$ closure among completed jobs).
+    </p>
+    <p>
+    The cluster path is now Rust-audited end to end. It reconstructs each
+    CE40 root from its numeric index and independently proves that every
+    recursive family contains all truth assignments of the same fresh
+    variables; verified nodes may have $2$, $4$, $8$, or $16$ children, and
+    job names alone are never accepted as a certificate. A second
+    Rust pilot keeps the $16$ siblings of one root in a single CaDiCaL under
+    assumptions. It reproduced Kissat's exact $13/16$ status vector while
+    using $35.3$ solver-seconds instead of $92$ ($2.6\times$ on that root).
+    Clause state is discarded between parent partitions, preserving the
+    pool-isolation lesson from day two. The conqueror now accepts explicit
+    ancestor definitions and resume ledgers and is the production engine for
+    the next recursive layer. A broader four-root check matched all $64/64$
+    independent Kissat statuses and used $73.9$ solver-seconds instead of
+    $236$ ($3.19\times$).
+    </p>
+    <p>
+    The representative survivor then revealed the decisive shape: twelve
+    successive four-counter splits each closed $15/16$, leaving one narrow
+    hard path rather than a branching tree. Splitting the next four counters
+    as two certified four-way stages took about $36$ seconds, versus
+    $50$--$59$ seconds as one sixteen-way stage. Production therefore asks
+    two semantic questions at a time, a measured $25$--$35\%$ improvement,
+    and completes alternating edge thresholds that a uniform-offset sweep
+    would miss. Rotating early to pair $(2,4)$ was worse ($2/4$ hard versus
+    $1/4$), so the engine finishes the active $(2,3)$ subcounts first.
+    </p>
+    <p>
+    At the observed rates the current $18$K-root residue remains provisionally
+    in the low-thousands of CPU-hours, but the deepest tail now grows nearly
+    linearly and its measured cost has fallen by roughly one third. Four
+    restart-safe staircase supervisors are armed behind the current depth-$3$
+    queues. Cluster compute is useful again, but only because the semantic
+    split changed the cost model. The independent coverage ledger is CLEAN at
+    $123{,}238$ exhausted nodes, $18{,}171$ HARD@40 leaves, $11{,}370$ queued,
+    and three in flight.
+    </p>
+</div>
+
 <div class="callout theorem">
     <div class="callout-title">Why the staircase towers are un-splittable — the isolated-vertex gauge</div>
     <p>

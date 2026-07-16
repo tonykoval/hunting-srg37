@@ -279,6 +279,80 @@ it would have been recorded as "fusion refuted" and the real mechanism
 never found.
 </p>
 
+<h2>13.9 &nbsp; Postscript IV: split the counter, not another edge (2026-07-16)</h2>
+
+<p>
+The next useful idea was hiding inside the encoding. March selected variable
+$17221$ again and again while choosing lookahead cubes. That variable was not
+an edge at all: it was a node in one of the totalizers that counts agreements
+between a pair of rows. This suggested a different decomposition. Instead of
+fixing yet more arbitrary edges of a hard size-$40$ cube, split on statements
+such as ``at least $t$ vertices in this contiguous block agree with rows
+$2$ and $3$.'' These are semantic, balanced questions about the obstruction
+the solver is actually trying to satisfy.
+</p>
+
+<table>
+    <thead>
+        <tr><th>Pilot</th><th>Closed</th><th>Interpretation</th></tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Four agreement counters for pair $(2,3)$</td>
+            <td>$13/16$ in $120$ s</td>
+            <td>Most branches died in $0$--$3$ s.</td>
+        </tr>
+        <tr>
+            <td>Recursive counters inside the three survivors</td>
+            <td>$43/48$ in $120$ s</td>
+            <td>The same semantic tree kept its resolving power.</td>
+        </tr>
+        <tr>
+            <td>An unrelated row pair $(4,5)$</td>
+            <td>$2/14$</td>
+            <td>Not every semantic split is useful; retire weak axes quickly.</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+This changed the distributed plan. A standalone Rust tool now constructs and
+audits the theorem-critical partition. A cluster shard contains a generic
+chain-strengthened CNF, an exact $40$-edge root assignment, and all sixteen
+agreement-counter children. A root may be banked as exhausted only when all
+sixteen tags are present and UNSAT; timeout leaves remain explicit residue
+for the next semantic level. The jobs deliberately run <strong>without clause
+pools</strong>: the pool anomaly of &sect;13.8 showed that learned state from the
+edge-cube traversal can slow a cross-axis re-entry by two orders of magnitude.
+The first production kit holds $64$ hard roots ($1024$ independent jobs),
+split into four restart-safe Docker archives.
+</p>
+
+<p>
+A second idea was tested in parallel: recursive canonical labeling (RCL),
+adapted from the 2026 SAT-nauty work. With vertex $0$ isolated as the switching
+gauge, the implementation kept one representative at orders $10$ and $14$;
+at order $14$ it collapsed the old $1003$ labeled models to one graph in
+$3.6$ seconds. But order $18$ still timed out after $600$ seconds and made
+about $2.8$ million nauty calls. The mathematics is sound and the quotient is
+excellent; this raw prototype is not yet the order-$38$ engine. The practical
+order is therefore: deploy semantic-totalizer shards now, recurse only on
+their timeout leaves, and improve RCL's prefix scheduling and incremental
+canonical-state reuse as a separate research line.
+</p>
+
+<div class="callout callout-key">
+    <div class="callout-title">Current frontier</div>
+    <p>
+    No new SRG(37) and no completeness theorem has appeared in the literature.
+    The live audited search contains $122{,}940$ exhausted nodes, $18{,}123$
+    explicit hard leaves, $11{,}371$ queued nodes, and no coverage gaps. The
+    semantic split is the first post-wall method to preserve high closure at a
+    second recursive level, so cluster time should be spent there rather than
+    on another uniform budget increase.
+    </p>
+</div>
+
 <div class="chapter-nav">
     <a class="prev" href="ch12_soundness.html">Ch 12 · Is the Search Correct?</a>
     <a class="next" href="../appendix/notation.html">Appendix A · Notation</a>

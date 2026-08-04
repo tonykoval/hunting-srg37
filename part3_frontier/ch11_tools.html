@@ -206,7 +206,226 @@ GPU_TWOGRAPH=1 twograph-sls --cube-idx &lt;idx&gt; --budget-secs 3600 \
     </p>
 </div>
 
-<h2>11.7 &nbsp; The standing invitation</h2>
+<h2>11.7 &nbsp; How the hunt works, in plain words</h2>
+
+<p>
+Everything above assumes you already know what the machinery is for. This
+section assumes nothing. It is the explanation you would give a colleague on
+a whiteboard, in five steps.
+</p>
+
+<h3>Step 1 — What we are looking for</h3>
+
+<p>
+Exactly $6802$ strongly regular graphs with parameters $(37,18,8,9)$ are
+known. Nobody has proved the list is complete. So there are two prizes, and
+the same computation wins either one: if a $6803$rd graph exists, the search
+<em>finds</em> it; if it does not, the finished search <em>is the proof</em>
+that $6802$ is final. We cannot lose — the only question is which prize it
+is, and how much compute it costs.
+</p>
+
+<h3>Step 2 — Why we cannot just try all graphs</h3>
+
+<p>
+A graph on $37$ vertices is a choice of yes/no for each of the
+$\binom{37}{2} = 666$ possible edges: $2^{666}$ possibilities, a number with
+$200$ digits. No computer enumerates that. The whole craft of the campaign is
+shrinking the space <em>without ever risking skipping a graph</em>. Three
+shrinks do almost all the work:
+</p>
+
+<ul>
+    <li><strong>Reformulate.</strong> Every $\mathrm{SRG}(37,18,8,9)$ sits
+        inside a <em>regular two-graph on 38 vertices</em> (add one vertex,
+        switch appropriately — Chapter 2). Searching for the two-graph is the
+        same hunt in better coordinates: more symmetry to exploit, and a
+        cleaner algebraic description for the solver.</li>
+    <li><strong>Symmetry-break.</strong> Relabelling vertices gives
+        "different" matrices that are the same graph. The engine carries a
+        canonicity test that keeps exactly one labelling per graph and a
+        full lex ordering on the rows ($37$-row lex chain), so the solver
+        never explores two copies of the same object. This alone shrinks the
+        space by factors in the millions.</li>
+    <li><strong>Divide.</strong> What remains is cut into
+        <strong>cubes</strong>: fix the first few edge decisions to a
+        concrete pattern (the CE40 basis fixes $40$ of them), and each
+        pattern becomes an independent sub-problem. The campaign's queue of
+        $11{,}884$ <strong>roots</strong> is exactly this: $11{,}884$
+        disjoint boxes that together tile the whole remaining space.</li>
+</ul>
+
+<div class="callout definition">
+    <div class="callout-title">The one property everything depends on</div>
+    <p>
+    The three shrinks are <em>sound</em>: they discard only duplicates and
+    impossibilities, never a potential graph. So "we searched every box and
+    found nothing" really does mean "no new graph exists". A permanent
+    auditor (<code>srg37_cover_check.py</code>) re-verifies after every merge
+    that the boxes still tile everything — no box lost, none double-counted,
+    none quietly skipped.
+    </p>
+</div>
+
+<h3>Step 3 — What happens inside one box</h3>
+
+<p>
+For each root, the engine (a SAT solver with the canonicity test wired into
+its inner loop) asks: <em>does any two-graph exist with these fixed
+decisions?</em> Three outcomes:
+</p>
+
+<table>
+    <tr><th>outcome</th><th>meaning</th><th>what happens next</th></tr>
+    <tr><td><code>EXHAUSTED</code></td><td>the box is empty — a
+        machine-checkable <em>certificate</em> that no new graph hides
+        there</td><td>banked in the ledger, forever</td></tr>
+    <tr><td><code>FOUND</code></td><td>the solver produced a concrete
+        graph</td><td>the drop-everything event — see Step 5</td></tr>
+    <tr><td>timeout</td><td>the box is too hard as posed</td><td>the engine
+        <em>splits</em> it into smaller boxes and queues the pieces
+        (autosplit); a box that resists even at the finest split is ledgered
+        <code>HARD</code> for the escalation lane</td></tr>
+</table>
+
+<p>
+This is why the ledger — currently past $250{,}000$ lines at home plus your
+shards — <em>is</em> the search. Each line is a small theorem: "box $X$
+contains nothing new." The hunt ends when the certificates tile the whole
+space, or the moment one box yields a graph instead.
+</p>
+
+<h3>Step 4 — Why a found graph is not yet a discovery</h3>
+
+<p>
+If a box ever yields a graph, one check remains: is it genuinely new, or a
+relabelling of one of the $6802$? The catalog ships with every worker
+pre-keyed in canonical form; <code>iso-compare</code> answers in seconds.
+Only <strong>*** NOVEL ***</strong> means the $6803$rd graph. (History
+recommends the caution: the 2026-07 window-search "find" turned out to be
+Spence&nbsp;#39 under a different labelling.)
+</p>
+
+<h3>Step 5 — The honest odds</h3>
+
+<p>
+The iron law of Chapter 9 cuts both ways: complete catalogs at small $v$ are
+the likely outcome, so the <em>expected</em> prize is the completeness
+theorem — which would close the first open case in the classification of
+regular two-graphs, open since 2001. But expectation is not knowledge: the
+only way to know is to finish, and a find would be the more spectacular
+ending precisely because the field expects the other one.
+</p>
+
+<h2>11.8 &nbsp; The distributed mode: many machines, one search</h2>
+
+<p>
+Because the boxes are independent, the search parallelises perfectly: any
+machine can grind any subset of the queue, and the certificates compose. As
+of 2026-08-04 this is packaged as a public Docker image —
+<code>tonykoval/srg37-worker</code> — that carries everything a stranger's
+machine needs: the audited engine, the pre-keyed catalog, a warm clause pool,
+and a snapshot of the full root queue ($145$ MB total).
+</p>
+
+<h3>Dealing the cards</h3>
+
+<p>
+Think of the queue as a deck of $11{,}884$ cards. With $N$ machines, machine
+$k$ takes every $N$-th card starting from the $k$-th — disjoint by
+construction, no coordination needed while running:
+</p>
+
+<pre><code>> docker run -d --name srg37 \
+    -e SHARD=k -e SHARDS=N \
+    -v "$PWD/out:/srg37/out" \
+    tonykoval/srg37-worker</code></pre>
+
+<p>
+Each machine works through its slice with <code>WORKERS</code> parallel
+engines (default: all cores but one), writes every verdict to
+<code>out/ledger.tsv</code>, and is restart-safe: kill the container, reboot
+the host, start it again — it resumes from the mounted volume, skipping
+every box it already certified. Sporadic crashes lose nothing: a crashed box
+never receives a certificate, is retried once automatically, and otherwise
+simply returns to the home queue at merge time. The first field deployment
+(an $8$-core machine, $2$ workers) ground a quarter of the entire queue —
+$2{,}974$ roots — in its first days at a $99.95\%$ per-root success rate.
+</p>
+
+<h3>Bringing the receipts home</h3>
+
+<p>
+Periodically each machine ships back one file: its ledger. Merging is a
+concatenation plus an audit:
+</p>
+
+<pre><code>> cat ledger_shard1.tsv >> out/autosplit/ledger.tsv
+> python3 scripts/srg37_cover_check.py        # MUST print CLEAN</code></pre>
+
+<p>
+Tags are globally unique, so ledgers from any number of machines compose;
+the cover-checker then re-proves that the union of everyone's certificates
+still tiles the space with nothing missing and nothing forged by a partial
+run. After a merge, the home queue is pruned — no machine re-grinds a box
+another machine already closed. If any shard's <code>hits/</code> directory
+is ever non-empty, everything stops for Step 4 above.
+</p>
+
+<h3>Distributing the knowledge, not just the work</h3>
+
+<p>
+There is a second, subtler thing worth sharing. While solving, each engine
+<em>learns</em>: it discovers clauses — reusable facts of the form "this
+partial pattern can never extend to a solution" — that prune every later box
+it touches. These accumulate in a <strong>warm pool</strong> file per worker.
+The crucial soundness point: every engine runs the identical binary on the
+identical encoding, so a learned clause is a logical consequence of the
+<em>shared</em> problem — a shortcut discovered on one machine is valid on
+all of them. Like margin notes in identical copies of the same book: written
+in one copy, true in every copy.
+</p>
+
+<p>
+Knowledge therefore circulates in <strong>epochs</strong> rather than live:
+</p>
+
+<pre><code>nodes ship ledgers + pools home
+   |
+   v
+merge ledgers -> cover-check CLEAN -> prune finished roots from the queue
+merge pools   -> dedup, keep the short (strongest) clauses, cap the size
+   |
+   v
+rebuild the image with the fresh queue + the fleet's merged pool
+push as tonykoval/srg37-worker:&lt;date&gt;
+   |
+   v
+every node:  docker pull  ->  next epoch starts where the FLEET left off,
+             seeded with everything the fleet has learned</code></pre>
+
+<p>
+Two measured rules keep this honest. Pools are for the main grind only — a
+2026-07 experiment showed a foreign pool turning a $3$-second escalation
+probe into $130{+}$ seconds (the "pool-poison" finding), so probe and
+escalation kits stay pool-free. And pools are trimmed each epoch: parse cost
+at every box start grows with pool size, so unbounded sharing would slowly
+tax exactly the thing it is meant to speed up.
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Why this design is safe to open to strangers</div>
+    <p>
+    A malicious or broken node cannot corrupt the search. Certificates are
+    only <em>claims</em> until the cover-checker accepts the merged ledger,
+    any claimed find is canon-checked against the catalog before belief, and
+    a node that silently does nothing merely fails to speed things up. The
+    worst a bad participant can do is waste their own electricity — the
+    soundness of the final theorem rests entirely on checks run at home.
+    </p>
+</div>
+
+<h2>11.9 &nbsp; The standing invitation</h2>
 
 <p>
 The catalog, the unaccounted targets, and every attack are public. If you

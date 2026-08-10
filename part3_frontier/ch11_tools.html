@@ -348,9 +348,23 @@ engines (default: all cores but one), writes every verdict to
 the host, start it again — it resumes from the mounted volume, skipping
 every box it already certified. Sporadic crashes lose nothing: a crashed box
 never receives a certificate, is retried once automatically, and otherwise
-simply returns to the home queue at merge time. The first field deployment
-(an $8$-core machine, $2$ workers) ground a quarter of the entire queue —
-$2{,}974$ roots — in its first days at a $99.95\%$ per-root success rate.
+simply returns to the home queue at merge time.
+</p>
+
+<p>
+<em>Field results (as of 2026-08-10).</em> The first deployment — an
+$8$-core machine, mostly at $2$–$7$ workers — completed shards $1$ and $2$
+outright: <strong>half of the entire $11{,}884$-root queue</strong>, at a
+$99.95\%$ per-root success rate, with its single mid-run segfault self-healed
+by the retry path (the crashed root re-ran clean). The first merge went
+exactly as the protocol promises: $21{,}369$ EXHAUSTED certificates and
+$2{,}707$ HARD leaves folded into the master ledger, the auditor printed
+CLEAN, and $5{,}932$ now-certified roots were auto-pruned from the home
+queue — the home workers redeployed onto untouched territory overnight.
+Shards $3$ and $4$ are running in parallel on the same machine; when they
+drain, the whole certified queue will have been ground by the fleet, and
+what remains of this campaign is exactly the HARD residue of
+<a href="ch10_frontier.html">Chapter 10</a>.
 </p>
 
 <h3>Bringing the receipts home</h3>

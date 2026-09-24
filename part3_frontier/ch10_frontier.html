@@ -599,6 +599,120 @@ here is safe precisely because it is defended by the cover-checker and by real
 UNSAT certificates rather than by an unaudited count.
 </p>
 
+<h2>10.5 &nbsp; The September verdicts: rigidity, the gauge tower, and the width of the wall &nbsp;<em>(2026-09-24)</em></h2>
+
+<p>
+Two months after §10.4 the fleet campaign is fully accounted (both remote shards drained, ledgers
+merged on 2026-09-23: $2{,}359{,}258$ rows), and four results settle what the residue <em>is</em>. None of
+them is a new graph. Together they are the most precise statement this book can make about why
+$\#6803$ has not been found and what finding it would cost.
+</p>
+
+<h3>10.5.1 &nbsp; Every unknown two-graph on 38 points is rigid</h3>
+
+<p>
+Maksimović and Rukavina (Math. Commun. 27, 2022, Thm. 1) proved that <em>exactly</em> $20$ regular
+two-graphs on $38$ points have a descendant with a nontrivial automorphism, and that there are no
+others with that property. So a two-graph $T$ outside the $194$ known ones has all $38$ descendants
+rigid; an automorphism of $T$ fixing a point induces an automorphism of that point's descendant,
+hence is trivial; so $\mathrm{Aut}(T)$ acts semiregularly and $|\mathrm{Aut}(T)|$ divides $38$.
+A fixed-point-free involution is impossible (the $2026$-$06$-$01$ determinant lemma:
+$S=\begin{pmatrix}P&R\\R&P\end{pmatrix}$ forces $\det(P+R)^2=37^{19}$), and the fixed-point-free
+order-$19$ case was exhausted by <code>twograph19</code> ($2{,}508$ pairs, $5$ classes, all in the catalogue).
+Therefore:
+</p>
+
+<div class="callout theorem">
+    <div class="callout-title">Theorem (assembled 2026-09-23)</div>
+    <p>Every regular two-graph on $38$ points not among the $194$ known is rigid, and every
+    $\mathrm{SRG}(37,18,8,9)$ not among the $6{,}802$ known is rigid.</p>
+</div>
+
+<p>
+The consequence for the hunt is absolute: orbit matrices, prescribed groups, character and frame
+engines, Ishida-type trace identities, switching from symmetric seeds — every symmetry-based tool in
+Parts II–III is provably silent on $\#6803$. Only symmetry-free methods remain.
+</p>
+
+<h3>10.5.2 &nbsp; The gauge reduction holds, and what it leaves</h3>
+
+<p>
+The isolated-vertex lemma of §10.2 (every two-graph has a carrier with an isolated vertex) was audited
+against the engine's actual symmetry breaking: a global row-lex-min labelling of that carrier has the
+isolated vertex at position $0$, satisfies the pairwise row-lex propagator, the Seidel gauge and every
+row-$0$ cube bit, so every $\mathrm{SRG}(37,18,8,9)$ is found inside <strong>tower 0</strong> alone. The
+other six towers, and every HARD leaf in them, are off the critical path. With the merged fleet ledgers
+the numbers are:
+</p>
+
+<table class="data">
+<thead><tr><th></th><th>all seven towers</th><th>tower 0</th></tr></thead>
+<tbody>
+<tr><td>live HARD leaves at depth 40</td><td>$280{,}787$</td><td>$106{,}955$</td></tr>
+<tr><td>cost at the measured $>4$ h per leaf</td><td>$>130$ CPU-years</td><td>$>49$ CPU-years</td></tr>
+</tbody>
+</table>
+
+<p>
+So the reduction removes $62\%$ of the residue and does not change its kind: the depth-40 route cannot
+finish. (One node lost between the home split and the fleet queue, <code>c217776128_s28</code>, is being
+run separately; it is the only non-hard gap in tower 0.)
+</p>
+
+<h3>10.5.3 &nbsp; The local-graph levers, measured and refuted</h3>
+
+<p>
+Fix a vertex $v$ and its neighbourhood $H=N(v)$, an $8$-regular graph on $18$ vertices. Once $H$ is admissible
+the completion is forced (star complement, $0.15$ s), so the classification cost is the number $W$ of
+admissible $H$. Two candidate necessary conditions on $H$ beyond positivity were derived and measured on
+$1{,}500$ catalogue neighbourhoods against $12{,}000$ generated admissible ones: the switching-spectrum
+condition (every eigenvalue $\theta$ of $H$ reappears in the non-neighbourhood as $\theta$ or $-1-\theta$, with
+integral triangle and $4$-cycle counts) is satisfied by $100\%$ of both sets — it is forced by
+$8$-regularity and the spectral cap — and the exact triple intersection bounds of the $0/1$ factorisation
+$CC^{\mathsf T}=9I-A_H-A_H^2+8J$ kill $0.5\%$. A literature scout the same day found no published hereditary
+condition either (the Greaves–Yatsyna–Syatriadi–Phan $2$-adic congruences constrain spectra, not graphs;
+the Jacobi complementary-block identity is the switching condition above; the $\mathbb F_{37}$-rank bound
+only bites beyond order $19$). Nothing at the level of completed local graphs prunes.
+</p>
+
+<h3>10.5.4 &nbsp; The width of the wall, measured</h3>
+
+<p>
+What nobody had measured is $W$ itself. The edge-switch Markov chain samples labelled $8$-regular graphs on
+$18$ vertices uniformly; the fraction that pass the exact leaf test of the Stage-A generator (both cone
+Gram blocks positive semidefinite; the intersection caps turn out to be vacuous for $8$-regular graphs on
+$18$ vertices) is $P = $ 3.3	imes10^{-6}, and the number of labelled $8$-regular graphs on $18$ vertices is
+$1.8\times10^{33}$ (McKay–Wormald dense formula, checked against the classification of $5$-regular graphs
+on $14$ vertices). Dividing by $18!$:
+</p>
+
+<div class="callout definition">
+    <div class="callout-title">The width</div>
+    <p>$W \approx$ 10^{12} admissible local graphs up to isomorphism ($1.3	imes10^{8}$ samples in seven independent chains, $441$ admissible, statistical error $pm5%$; a chain with ten times more switches per sample agrees within its own error). Of these, the
+    known graphs account for about $2.7\times10^{5}$: fewer than one admissible neighbourhood in a million
+    extends.</p>
+</div>
+
+<p>
+This number closes the neighbourhood route by arithmetic. Even at $1$ ms per local graph for generation
+and forced completion together — a hundred times faster than today's tools — the classification costs
+$W\times 10^{-3}$ s $\approx 30$ CPU-years, and the forced completion alone is nearer $10$ ms. Every
+symmetry-free method we own or read about (row-$0$ cubes at depth $40$, orderly generation at column $17$,
+Seidel-matrix enumeration at order $19$, the neighbourhood route) has this same width at its middle level.
+</p>
+
+<h3>10.5.5 &nbsp; What would finish it</h3>
+
+<p>
+A hereditary constraint on <em>partial</em> local graphs that cuts the width by three orders of magnitude,
+or an entirely different algebra. The September census found no cheap hereditary invariant (true and
+generated neighbourhoods are indistinguishable in triangles, $\lambda_2$, $\lambda_{\min}$ and small induced
+patterns), and the rigidity theorem removes every algebraic shortcut through symmetry. The honest status of
+$\mathrm{SRG}(37,18,8,9)$ at the end of September 2026: $6{,}802$ known, any further one rigid, and the
+classification open by mathematics, not by compute.
+</p>
+
+
 <div class="chapter-nav">
     <a class="prev" href="ch09_findings.html">Ch 9 · Empirical Findings</a>
     <a class="next" href="ch11_tools.html">Ch 11 · Tools &amp; Reproducibility</a>

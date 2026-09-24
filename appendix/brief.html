@@ -208,6 +208,30 @@ implied by what we have. The exact leaf test used for "admissible" is the C func
 <code>tools/srg37_width/wsample.c</code>, which is also the sampler that measured $W$.
 </p>
 
+<h2>D.8 &nbsp; Model-assisted rounds, 2026-09-24: what came back</h2>
+
+<p>The brief of D.6 was sent to OpenAI's <code>gpt-6-astra</code> (high reasoning effort), followed by a second round with
+our measurements, a program-writing loop, and one question on a sibling set. Every answer went through the harness
+of D.7 before anything was believed.</p>
+
+<table class="data">
+<thead><tr><th>round</th><th>what the model produced</th><th>measured</th><th>verdict</th></tr></thead>
+<tbody>
+<tr><td>1 (brief D.6)</td><td>sign-Gram inequalities: $z^{\mathsf T}Dz\ge n$ for odd-sum integer $z$ on the anchored block, $D=37I-C^2$; hereditary; a 7-vertex witness passing both cone tests</td><td>witness reproduced exactly; true 100&nbsp;%; uniform admissible: five-row form rejects 4&nbsp;%, seven-row 9&nbsp;%, first failures at 12–17 vertices</td><td>sound and new to us, but a weak and late prune</td></tr>
+<tr><td>2 (with our data)</td><td>the family is the hypermetric facets of the cut polytope; the complete linear test is membership of $D/n$ in the correlation polytope; depth bound $m(q+1)>36$; exact rank-18 clique completion; a second witness $K_{4,3}$</td><td>complete linear test on prefixes of 9, 11, 13 vertices: 100&nbsp;% of uniform prefixes pass, as do true ones</td><td>the whole Gram/correlation family is powerless in the middle of the tree: the line is closed</td></tr>
+<tr><td>program search (FunSearch loop)</td><td>12 search programs over 6 generations, scored by $d_{18}$ (closeness to a true neighbourhood) with exact hits completed and checked</td><td>best $d_{18}=1.3\times10^{-4}$ against $3.3\times10^{-4}$ for plain hill climbing; an exact hit needs $<10^{-9}$</td><td>a factor-two constant; plateau; no graph</td></tr>
+</tbody>
+</table>
+
+<p>Also found the same day while checking the answers: at the leaf the norm-square condition (D.4) rejects <em>every</em>
+uniformly sampled admissible local graph, while the geng-subtree sample had suggested 98.4&nbsp;%. The lesson written
+into the harness: measure every condition on the uniform sampler's output, never on a subtree of a generator.</p>
+
+<p>Reading. The model is a real collaborator — it corrected an error in a brief on a sibling problem, gave witnesses
+that check to the digit, and was more careful about unsupported rejection rates than the first version of this page.
+What it has not produced, and what D.5 still asks for, is a hereditary condition that bites before about ten vertices.
+The Gram-type family provably cannot.</p>
+
 <div class="chapter-nav">
     <a class="prev" href="theorems.html">Appendix C · Theorems</a>
     <a class="next" href="../index.html">Title &amp; Contents</a>

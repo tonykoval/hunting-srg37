@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Appendix D · The Brief — Hunting SRG(37)</title>
+<link rel="stylesheet" href="../assets/book.css">
+<link rel="stylesheet" href="../assets/print.css" media="print">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+
+<div class="book-shell">
+
+<nav class="nav-sidebar" aria-label="Table of contents">
+    <h2>Front Matter</h2>
+    <ol><li><a href="../index.html">Title &amp; Contents</a></li></ol>
+    <h2>Part 0 — Math for Dummies</h2>
+    <ol>
+        <li><a href="../part0_primer/prim1_eigenvalues.html">0.1 Eigenvalues</a></li>
+        <li><a href="../part0_primer/prim2_spectrum.html">0.2 The Spectrum</a></li>
+        <li><a href="../part0_primer/prim3_trace.html">0.3 The Trace</a></li>
+    </ol>
+    <h2>Part I — The Target</h2>
+    <ol>
+        <li><a href="../part1_target/ch01_target.html">1. The Target</a></li>
+        <li><a href="../part1_target/ch02_spectrum.html">2. Spectrum &amp; Feasibility</a></li>
+        <li><a href="../part1_target/ch03_catalog.html">3. The 6802-Graph Catalog</a></li>
+        <li><a href="../part1_target/ch03b_twograph.html">3½. The Two-Graph Reduction</a></li>
+    </ol>
+    <h2>Part II — The Hunt</h2>
+    <ol start="4">
+        <li><a href="../part2_hunt/ch04_sat.html">4. SAT &amp; Constraint Attacks</a></li>
+        <li><a href="../part2_hunt/ch05_switching.html">5. Combinatorial Switching</a></li>
+        <li><a href="../part2_hunt/ch06_localsearch.html">6. Local &amp; Continuous Search</a></li>
+        <li><a href="../part2_hunt/ch07_llm.html">7. LLM-Driven Attacks</a></li>
+        <li><a href="../part2_hunt/ch08_backtrack.html">8. Custom Backtracking</a></li>
+    </ol>
+    <h2>Part III — Findings &amp; Frontier</h2>
+    <ol start="9">
+        <li><a href="../part3_frontier/ch09_findings.html">9. Empirical Findings</a></li>
+        <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
+        <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
+        <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="../part3_frontier/ch13_engine.html">13. The Engine</a></li>
+    </ol>
+    <h2>Appendices</h2>
+    <ol>
+        <li><a href="notation.html">A. Notation &amp; Glossary</a></li>
+        <li><a href="bibliography.html">B. Bibliography</a></li>
+        <li><a href="theorems.html">C. Theorems &amp; Proofs</a></li>
+        <li><a href="brief.html">D. The Brief</a></li>
+    </ol>
+</nav>
+
+<main class="chapter" role="main">
+
+<h1 class="chapter-title">
+    <span class="chapter-number">Appendix D</span>
+    The Brief — a page to hand to a mathematician or a model
+</h1>
+
+<p class="lead">
+Everything a fresh mind needs to attack the classification of $\mathrm{SRG}(37,18,8,9)$ without
+repeating two years of this project: the exact question, the walls with their measured widths, what has
+been refuted, what a winning result must look like, and a copy-and-paste prompt. Written 2026-09-24; the
+numbers are those of Chapter 10.5.
+</p>
+
+<h2>D.1 &nbsp; The question, exactly</h2>
+
+<p>
+Classify the strongly regular graphs with parameters $(37,18,8,9)$, equivalently the regular two-graphs on
+$38$ points, equivalently the symmetric conference matrices of order $38$ (Seidel matrix $S$: symmetric,
+zero diagonal, $\pm1$ off the diagonal, $S^2=37I$), equivalently the equiangular tight frames of $38$ lines
+in $\mathbb R^{19}$. Known: $6{,}802$ graphs from $194$ two-graphs (Maksimović–Rukavina 2022, building on
+McKay–Spence 2001). Open since 2001: is the list complete?
+</p>
+
+<h2>D.2 &nbsp; What is proved</h2>
+
+<ul>
+<li><strong>Rigidity.</strong> Every regular two-graph on $38$ points outside the $194$ known is rigid, hence
+every unknown $\mathrm{SRG}(37,18,8,9)$ has trivial automorphism group (Ch 10.5.1). So no symmetry-based
+method — orbit matrices, prescribed automorphisms, switching from symmetric seeds, character or frame
+engines, trace identities — can produce a new one.</li>
+<li><strong>Gauge.</strong> Every class has a carrier with vertex $0$ isolated whose row-lex-min labelling
+lies in the all-zero cube of the SAT tree ("tower 0"); with the fleet ledgers merged that tower still holds
+$106{,}955$ leaves that resisted the depth-$40$ budget, at more than $4$ h each (Ch 10.5.2).</li>
+<li><strong>Forced completion.</strong> Fix a vertex $v$ and its neighbourhood $H=N(v)$, an $8$-regular graph
+on $18$ vertices. If $H$ is the neighbourhood of a true graph, the rest is forced through the star complement
+of $N[v]$ (two completions, $0.15$ s). So classification $=$ enumeration of admissible $H$ (Ch 11).</li>
+</ul>
+
+<h2>D.3 &nbsp; The walls, with their widths</h2>
+
+<table class="data">
+<thead><tr><th>route</th><th>where it stops</th><th>measured width / cost</th></tr></thead>
+<tbody>
+<tr><td>CDCL SAT on the two-graph with canonicity propagator, cubes on row 0</td><td>depth-40 leaves</td><td>$280{,}787$ live leaves, $106{,}955$ in tower 0; $>4$ h each</td></tr>
+<tr><td>orderly (canonical-augmentation) generation of the graph</td><td>column 17</td><td>never completes column 17 in 600 s</td></tr>
+<tr><td>neighbourhood route (generate $H$, complete)</td><td>the number of admissible $H$</td><td>$W\approx10^{12}$ (Ch 10.5.4); $\ge 30$ CPU-years at $1$ ms per $H$</td></tr>
+<tr><td>Seidel-matrix / conference-matrix enumeration</td><td>order 19</td><td>same width as the cone level of the neighbourhood route</td></tr>
+</tbody>
+</table>
+
+<p>
+"Admissible" for $H$ means: $8$-regular, and both $19\times19$ cone Gram blocks
+$G_\theta = I + \tfrac{\theta}{18}A_X - \tfrac{1+\theta}{18}(J-I-A_X)$, $\theta=\tfrac{-1\pm\sqrt{37}}{2}$,
+positive semidefinite on $X=\{v\}\cup H$ (Cauchy interlacing). About one admissible $H$ in a million extends.
+</p>
+
+<h2>D.4 &nbsp; What has been tried on the local graph and does not prune</h2>
+
+<table class="data">
+<thead><tr><th>condition on $H$ (or on partial $H$)</th><th>true neighbourhoods</th><th>generated admissible</th><th>verdict</th></tr></thead>
+<tbody>
+<tr><td>intersection caps (edge $\le7$, non-edge $\le8$ common neighbours)</td><td>100 %</td><td>100 %</td><td>vacuous for 8-regular graphs on 18 vertices</td></tr>
+<tr><td>switching-spectrum: every eigenvalue $\theta$ of $H$ reappears in the non-neighbourhood as $\theta$ or $-1-\theta$, with integral triangle and $4$-cycle counts</td><td>100 %</td><td>100 %</td><td>forced by regularity + PSD (Jacobi complementary-block identity)</td></tr>
+<tr><td>triple intersection bounds of $CC^{\mathsf T}=9I-A_H-A_H^2+8J$</td><td>100 %</td><td>99.5 %</td><td>negligible</td></tr>
+<tr><td>$2$-adic valuation $v_2\det(37I-A_{X'}^2)\ge 2m-2$ on partial cones of order $m\le18$</td><td>100 %</td><td>100 %</td><td>automatic (Greaves–Yatsyna type)</td></tr>
+<tr><td>cheap invariants: triangles, $\lambda_2$, $\lambda_{\min}$, 8-vertex induced patterns</td><td colspan="2">indistinguishable (8,000 vs 8,000 census)</td><td>no hereditary signal</td></tr>
+<tr><td>$\mathbb F_{37}$-rank of principal blocks of $S$ is $\le19$</td><td colspan="2">only bites at order $\ge20$</td><td>past the wall</td></tr>
+<tr><td><strong>norm-square:</strong> $\det(37I-S_H^2)/36\in2^{34}\mathbb Z^2$ or $=0$</td><td>100 % (6,802 / 6,802)</td><td><strong>1.56 %</strong></td><td>a $64\times$ leaf filter, <em>not</em> hereditary</td></tr>
+</tbody>
+</table>
+
+<p>
+Also refuted, with measurements, in Chapters 4–8: every local-search, simulated-annealing, tabu, GPU-SLS,
+learned-policy and LLM-construction loop; Godsil–McKay and Wang–Qiu–Hu switching over the whole catalogue;
+the semantic staircase; smart cubing and SDP shields as anything more than constant factors.
+</p>
+
+<h2>D.5 &nbsp; What would win</h2>
+
+<p>
+A <em>hereditary</em> necessary condition: a property of the induced subgraph on any $m\le18$ vertices of a
+true neighbourhood (or of any principal $m\times m$ block of a symmetric conference matrix of order $38$) that
+fails for a large fraction of partial graphs satisfying interlacing. To change the arithmetic it must cut the
+generation tree by three or more orders of magnitude in total; at $10^3$ the neighbourhood route becomes a
+fleet job of weeks, at $10^2$ it is still years. The natural source is the structure the norm-square condition
+touches: $37I-A_X^2$ must be the Gram matrix of $19$ vectors in $\{\pm1\}^{38-m}$, and Gram matrices of
+$\pm1$ vectors carry more than a determinant condition (Cauchy–Binet sums of squared minors, congruences of
+minors mod powers of $2$, representability). A characterization of $\pm1$-representable Gram matrices that
+survives restriction to sub-blocks would be exactly the lever. Second candidates: a lattice-theoretic
+obstruction over $\mathbb Z[\tfrac{1+\sqrt{37}}2]$ on the rank-$19$ frame lattice of $S$ that is local in the
+rows; or a forbidden induced-subgraph theorem for neighbourhoods of conference graphs.
+</p>
+
+<p>
+Anything that is <em>not</em> hereditary is a leaf filter and cannot help: the width is in the generation,
+not in the completion.
+</p>
+
+<h2>D.6 &nbsp; The prompt</h2>
+
+<p>Copy from here to the end of the block. It is written for a strong reasoning model; a human reader can skip it.</p>
+
+<pre class="prompt" style="white-space:pre-wrap;border:1px solid var(--rule,#ccc);padding:1em;font-size:0.9em">
+You are asked for NEW necessary conditions in algebraic graph theory, to be tested by computer within the hour.
+
+Setting. Gamma is a strongly regular graph with parameters (37,18,8,9): 37 vertices, degree 18, adjacent
+vertices have 8 common neighbours, non-adjacent 9. Its eigenvalues are 18 and (-1 +- sqrt 37)/2, each with
+multiplicity 18. Adding an isolated vertex and taking the Seidel matrix S = J - I - 2A on 38 points gives a
+symmetric conference matrix: S symmetric, zero diagonal, +-1 elsewhere, S^2 = 37 I. Every such Gamma is a
+descendant of such an S and conversely. Known: 6,802 such graphs (194 two-graphs); every further one has
+trivial automorphism group (proved). The classification is open.
+
+Fix a vertex v of Gamma and let H = N(v): an 8-regular graph on 18 vertices. Once H is known, Gamma is
+forced (star complement). The classification therefore reduces to enumerating the admissible H, where
+"admissible" currently means: for X = {v} u H (19 points), both matrices
+    G_theta = I + (theta/18) A_X - ((1+theta)/18)(J - I - A_X),   theta = (-1 +- sqrt 37)/2,
+are positive semidefinite. The number of admissible H up to isomorphism is about 10^12 (measured), of which
+about 3*10^5 extend to a graph. Generating 10^12 graphs is the wall.
+
+What is already known and must not be re-proposed: (1) Cauchy interlacing / PSD of the cone blocks (used);
+(2) intersection caps (vacuous); (3) the switching-spectrum condition: the eigenvalues of the non-neighbourhood
+are theta or -1-theta for each eigenvalue theta of H (automatic given (1)); (4) 2-adic congruences of
+characteristic polynomials of Seidel matrices (Greaves-Yatsyna-Syatriadi-Phan) and the 2-adic valuation
+v_2 det(37I - A^2) >= 2m-2 on principal blocks of order m (automatic); (5) the F_37-rank bound rank <= 19 (only
+for blocks of order >= 20); (6) the NORM-SQUARE condition: for any 19-subset X of the 38 points,
+det(37 I - A_X^2) = det(B)^2 with B a 19x19 (+-1)-matrix, so for H: det(37 I - S_H^2)/36 is a perfect square
+divisible by 2^34, or zero. It removes 98.4 % of admissible H but is NOT hereditary.
+
+Wanted: a necessary condition on the induced subgraph of H on m < 18 vertices (equivalently on an m x m
+principal block of S with m <= 19), strictly stronger than PSD/interlacing, that a large fraction of
+interlacing-feasible partial graphs violate. Candidates should come with a proof or a precise derivation
+from S^2 = 37 I, the +-1 structure (37 I - A_X^2 = B B^T with B a +-1 matrix of size m x (38-m)), the rank-18
+idempotents, or lattice/ code structure over Z[(1+sqrt37)/2] or F_37. State each condition as an explicit
+computable test on a 0/1 adjacency matrix of size m, say for which m it applies, and say why it is not
+implied by (1)-(6). Conditions that only apply to the complete H (m = 18) are leaf filters and are of
+secondary interest; say so if that is what you have.
+
+We will test every proposal on 6,802 true neighbourhoods (must pass 100 %) and on 10,000 generated
+admissible ones (pass rate = the value of the idea) before believing any of it.
+</pre>
+
+<h2>D.7 &nbsp; How a proposal is tested here</h2>
+
+<p>
+The harness is <code>scripts/srg37_switch_spectrum_test.py</code> and <code>scripts/srg37_square_test.py</code>
+in the <em>orbit-gen</em> repository: each condition is coded as a function of the $18\times18$ adjacency matrix
+(or of an $m\times m$ induced block), run on the vertex-$0$ neighbourhoods of the $6{,}802$ catalogue graphs and
+on the generated admissible graphs of <code>out/f3bat2/geng37_shard0_4096.g6</code>, and reported as two pass
+rates. A condition that fails a single true neighbourhood is wrong; one that passes every generated one is
+implied by what we have. The exact leaf test used for "admissible" is the C function in
+<code>tools/srg37_width/wsample.c</code>, which is also the sampler that measured $W$.
+</p>
+
+<div class="chapter-nav">
+    <a class="prev" href="theorems.html">Appendix C · Theorems</a>
+    <a class="next" href="../index.html">Title &amp; Contents</a>
+</div>
+
+<footer class="book-foot">
+    <p><em>Hunting SRG(37)</em> · Appendix D · Tony Koval · CC-BY-4.0.</p>
+</footer>
+
+</main>
+
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+        onload="BookInit.renderMath()"></script>
+<script src="../assets/book.js"></script>
+
+</body>
+</html>

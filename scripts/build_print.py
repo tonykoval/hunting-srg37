@@ -35,6 +35,7 @@ CHAPTERS = [
     "appendix/notation.html",
     "appendix/bibliography.html",
     "appendix/theorems.html",
+    "appendix/brief.html",
 ]
 
 MAIN_RE = re.compile(r'<main class="chapter"[^>]*>(.*?)</main>', re.DOTALL)

@@ -43,6 +43,7 @@
         <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
         <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="../part3_frontier/ch13_engine.html">13. The Engine</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
@@ -100,7 +101,8 @@ it; the chapter in which it is used is noted.
     small primes, whose prototype systems Crnković–Maksimović (2020) solve
     exhaustively, obtaining exactly 40. Maksimović–Rukavina (2022) lift
     these to the catalog count $6802$ as a stated <em>lower</em> bound.
-    $\square$
+    $\square$ &nbsp; <em>(Strengthened 2026-09-23: the two-graph is rigid
+    too — Theorem C.8.)</em>
     </p>
 </div>
 
@@ -187,6 +189,56 @@ it; the chapter in which it is used is noted.
     restriction — its column-minimal representative can fall into a
     row-lex-pruned cube, a false UNSAT. The live run stays on the sound
     canonicity. $\square$
+    </p>
+</div>
+
+<h2>C.4 &nbsp; The September 2026 results</h2>
+
+<div class="callout theorem">
+    <div class="callout-title">Theorem C.8 (every unknown two-graph on 38 is rigid; 2026-09-23) — Ch 10.5</div>
+    <p>
+    Every regular two-graph on $38$ points not among the $194$ known
+    (Maksimović–Rukavina 2022) has trivial automorphism group; hence every
+    $\mathrm{SRG}(37,18,8,9)$ not among the $6802$ known is rigid.
+    </p>
+    <p>
+    <em>Proof.</em> Maksimović–Rukavina 2022, Thm 1: exactly $20$ regular
+    two-graphs on $38$ points have a descendant with a nontrivial
+    automorphism, and there are no others. So all $38$ descendants of an
+    unknown $T$ are rigid. An automorphism of $T$ fixing a point $x$ induces
+    an automorphism of the descendant $T_x$, hence is trivial; so
+    $\mathrm{Aut}(T)$ is semiregular, $|\mathrm{Aut}(T)|$ divides $38$, and a
+    nontrivial group contains a fixed-point-free element of order $2$ or
+    $19$. Order $2$ is impossible:
+    $S=\bigl(\begin{smallmatrix}P&R\\R&P\end{smallmatrix}\bigr)$ and
+    $S^2=37I$ force $(P+R)^2=37I$, so $\det(P+R)^2=37^{19}$, impossible for
+    an integer matrix (project lemma, 2026-06-01). Order $19$ gives only
+    catalog two-graphs: the exhaustive <code>twograph19</code> run over all
+    circulant $A$ and all $B$ found $2508$ valid pairs, $5$ isomorphism
+    classes, all in the catalog (Paley$(37)$'s two-graph among them, the
+    must-find control). An unknown $\Gamma$ is a descendant of an unknown $T$,
+    and $\mathrm{Aut}(\Gamma)\le\mathrm{Aut}(T)_x=1$. $\square$
+    </p>
+</div>
+
+<div class="callout theorem">
+    <div class="callout-title">Proposition C.9 (the norm-square condition on a local graph; 2026-09-24) — Ch 10.5</div>
+    <p>
+    Let $H=N(v)$ be the neighbourhood of a vertex of an
+    $\mathrm{SRG}(37,18,8,9)$ and $S_H$ its Seidel matrix. Then either
+    $\det(37I-S_H^2)=0$ or $\det(37I-S_H^2)/36$ is a perfect square
+    divisible by $2^{34}$.
+    </p>
+    <p>
+    <em>Proof.</em> For any $19$-subset $X$ of the $38$ points write
+    $S=\bigl(\begin{smallmatrix}A&B\\B^{\mathsf T}&D\end{smallmatrix}\bigr)$;
+    $S^2=37I$ gives $A^2+BB^{\mathsf T}=37I$, so $\det(37I-A^2)=\det(B)^2$
+    with $B$ a $19\times19$ $(\pm1)$-matrix, whose determinant is divisible
+    by $2^{18}$. For the cone $X=\{v\}\cup N(v)$ the apex eigenvalues
+    $(1\pm\sqrt{73})/2$ contribute the factor $18^2$ and the all-ones
+    eigenvalue of $S_H$ the factor $36$. $\square$ &nbsp; <em>(Measured: all
+    catalog neighbourhoods pass; $1.56\%$ of generated admissible ones — a
+    $64\times$ leaf filter, not hereditary.)</em>
     </p>
 </div>
 

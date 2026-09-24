@@ -155,6 +155,11 @@ it provably hosts a copy of everything, including $\#6803$ if it exists. Two
 consequences run the campaign: the staircase residue is exactly where the
 find-side probability concentrates (row-lex-minimal representatives have
 sparse early rows), and no "aim at a known graph's cube" shortcut can exist.
+<strong>Update (2026-09-24):</strong> audited on 2026-09-23 against the engine's
+actual symmetry breaking (pairwise row-lex propagator, Seidel gauge, cube
+bits): a global row-lex-min labelling of the isolated-vertex carrier lies in
+tower $0$ at every depth, so an exhaustive run of tower $0$ alone is the
+completeness certificate (<a href="ch10_frontier.html">§10.5.2</a>).
 </p>
 
 <h2>13.4 &nbsp; The audit — correctness as a checked property</h2>
@@ -408,6 +413,16 @@ canonical-state reuse as a separate research line.
     of CPU-hours, with the measured deepest-tail cost now reduced by roughly
     one third; cluster time should be spent there rather than on another
     uniform budget increase.
+    </p>
+    <p>
+    <strong>Update (2026-09-24):</strong> the fleet campaign has since drained
+    and been merged ($2{,}359{,}258$ ledger rows): $280{,}787$ HARD leaves at
+    depth $40$ fleet-wide, $106{,}955$ of them in tower $0$, one orphan node;
+    the certified fraction at the cap is $84.5\%$. The semantic staircase was
+    later measured not to converge (its width stays flat across successive
+    stages). By the theorem of §10.5.1 the residue can only contain rigid
+    objects; the September accounting is
+    <a href="ch10_frontier.html">§10.5</a>.
     </p>
 </div>
 

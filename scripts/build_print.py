@@ -31,6 +31,7 @@ CHAPTERS = [
     "part3_frontier/ch10_frontier.html",
     "part3_frontier/ch11_tools.html",
     "part3_frontier/ch12_soundness.html",
+    "part3_frontier/ch13_engine.html",
     "appendix/notation.html",
     "appendix/bibliography.html",
     "appendix/theorems.html",

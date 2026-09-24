@@ -45,10 +45,11 @@ adds page breaks, and footnotes external links.
 
 | Part | Chapters |
 |------|----------|
-| **I — The Target** | 1. The Target · 2. Spectrum & Feasibility · 3. The 6802-Graph Catalog |
+| **0 — Math for Dummies** | 0.1 Eigenvalues · 0.2 The Spectrum · 0.3 The Trace |
+| **I — The Target** | 1. The Target · 2. Spectrum & Feasibility · 3. The 6802-Graph Catalog · 3½. The Two-Graph Reduction |
 | **II — The Hunt** | 4. SAT & Constraint · 5. Switching · 6. Local & Continuous Search · 7. LLM-Driven · 8. Custom Backtracking |
-| **III — Findings & Frontier** | 9. Empirical Findings · 10. Breaking the Wall · 11. Tools & Reproducibility |
-| **Appendices** | A. Notation & Glossary · B. Bibliography |
+| **III — Findings & Frontier** | 9. Empirical Findings · 10. Breaking the Wall · 11. Tools & Reproducibility · 12. Is the Search Correct? · 13. The Engine |
+| **Appendices** | A. Notation & Glossary · B. Bibliography · C. Theorems & Proofs |
 
 ## Layout
 
@@ -57,10 +58,11 @@ hunting-srg37/
 ├── index.html            landing page + table of contents
 ├── print.html            title / abstract / contents (print front matter)
 ├── assets/               book.css, print.css, book.js (shared)
-├── part1_target/         chapters 1–3
+├── part0_primer/         chapters 0.1–0.3 (math primer)
+├── part1_target/         chapters 1–3, 3½
 ├── part2_hunt/           chapters 4–8
-├── part3_frontier/       chapters 9–11
-├── appendix/             notation, bibliography
+├── part3_frontier/       chapters 9–13
+├── appendix/             notation, bibliography, theorems
 └── scripts/build_print.py  one-shot print_full.html stitcher
 ```
 

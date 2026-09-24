@@ -43,6 +43,7 @@
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
         <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="ch13_engine.html">13. The Engine</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
@@ -237,7 +238,7 @@ shrinks do almost all the work:
 <ul>
     <li><strong>Reformulate.</strong> Every $\mathrm{SRG}(37,18,8,9)$ sits
         inside a <em>regular two-graph on 38 vertices</em> (add one vertex,
-        switch appropriately — Chapter 2). Searching for the two-graph is the
+        switch appropriately — Chapter 3½). Searching for the two-graph is the
         same hunt in better coordinates: more symmetry to exploit, and a
         cleaner algebraic description for the solver.</li>
     <li><strong>Symmetry-break.</strong> Relabelling vertices gives
@@ -364,6 +365,17 @@ Shards $3$ and $4$ are running in parallel on the same machine; when they
 drain, the whole certified queue will have been ground by the fleet, and
 what remains of this campaign is exactly the HARD residue of
 <a href="ch10_frontier.html">Chapter 10</a>.
+</p>
+
+<p>
+<strong>Update (2026-09-24):</strong> shards $3$ and $4$ drained on 2026-09-05
+and 2026-09-18; their ledgers ($803{,}644 + 905{,}404$ rows) were merged at
+home on 2026-09-23 into a $2{,}359{,}258$-row ledger, so the whole certified
+queue has now been ground by the fleet. What remains is the HARD residue of
+§10.5.2 — $106{,}955$ leaves at depth $40$ in tower $0$ — plus a single orphan
+node (<code>c217776128_s28</code>, lost between the home split and the fleet
+queue), which is the only node in the image
+<code>tonykoval/srg37-worker:tower0-2026-09-23c</code>.
 </p>
 
 <h3>Bringing the receipts home</h3>

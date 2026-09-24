@@ -43,6 +43,7 @@
         <li><a href="../part3_frontier/ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="../part3_frontier/ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
         <li><a href="../part3_frontier/ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="../part3_frontier/ch13_engine.html">13. The Engine</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
@@ -173,6 +174,16 @@ strong pruning.
     10</a>). With $30{,}122$ concrete candidate neighbourhoods already in
     hand, this is the attack most likely to either find $\#6803$ or
     start ruling candidates out one by one.
+    </p>
+    <p>
+    <strong>Update (2026-09-24):</strong> superseded. Once a neighbourhood
+    $H$ passes the admissibility test its completion is forced (a
+    star-complement extension, $0.15$ s per $H$), so the route was run to
+    the end of what it can decide: $372{,}881 + 222{,}188$ admissible local
+    graphs decided, none extends. The width of the space was then measured
+    — about $10^{12}$ admissible $H$ up to isomorphism — so scanning it costs
+    at least $30$ CPU-years even at $1$ ms per graph. The full account is in
+    <a href="../part3_frontier/ch10_frontier.html">§10.5.3–10.5.4</a>.
     </p>
 </div>
 

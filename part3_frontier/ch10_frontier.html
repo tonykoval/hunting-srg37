@@ -43,6 +43,7 @@
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
         <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="ch13_engine.html">13. The Engine</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
@@ -367,6 +368,13 @@ mechanisms by which a hit could be lost.
     </p>
 </div>
 
+<p>
+<strong>Update (2026-09-24):</strong> the recursive campaign ran on the fleet
+until both shards drained (2026-09-18); the merged ledgers leave
+$106{,}955$ HARD leaves at depth $40$ in tower $0$ alone, at more than $4$ h
+each. This route cannot finish; see §10.5.2.
+</p>
+
 <h3>2. GPU stochastic-local-search finder &nbsp;<em>(launched 2026-07-02)</em></h3>
 <p>
 A regular two-graph(38) is a $\pm1$ Seidel matrix with $S^2 = 37\,I$, so
@@ -394,7 +402,8 @@ CPU contention the CPU-side Lin–Kernighan chain starves and can wedge a
 run for hours — the v2 sweep throttles it (depth $40$, every $1000$
 iterations), doubles the population to $8192$ (shifting work onto the
 GPU), and wraps every run in a $75$-minute watchdog so the tower rotation
-can never stall silently. Zero hits so far.
+can never stall silently. Zero hits so far. <strong>Update (2026-09-24):</strong>
+still zero hits; the finder joins the other refuted local-search loops (§10.5).
 </p>
 
 <figure>
@@ -430,6 +439,13 @@ to <em>quantify</em> completeness. This needs no cluster and no budget —
 just the multi-day implementation begun in <code>orbit-gen</code>
 v1.0.514.
 </p>
+<p>
+<strong>Update (2026-09-24):</strong> done, and it changed the question. The
+forced completion is a star-complement step at $0.15$ s per $H$;
+$372{,}881 + 222{,}188$ admissible neighbourhoods were decided with $0$
+extensions, and the measured width $W \approx 10^{12}$ prices the full scan
+at $\ge 30$ CPU-years (§10.5.3–10.5.4).
+</p>
 
 <h3>4. Verifier-coupled learned policy &nbsp;<em>(research-grade)</em></h3>
 <p>
@@ -438,7 +454,9 @@ generation to the cheap verifier instead: fine-tune a small model on
 (graph, valid?) pairs and use it as the policy in an MCTS over partial
 adjacency matrices, expanding only branches the propagator has not killed.
 This is the unspent <code>llm_mcts_search.py</code> framework; it is the
-most speculative and the most interesting.
+most speculative and the most interesting. <strong>Update (2026-09-24):</strong>
+every LLM- and ML-driven construction loop tried since has returned nothing;
+the item stays as history, not as a plan.
 </p>
 
 <h3>5. A completeness proof &nbsp;<em>(the other way to win)</em></h3>
@@ -448,7 +466,10 @@ classification — closing the million unaccounted neighbourhoods, e.g. via
 a Lasserre/SDP hierarchy bound or a structured exhaustive
 two-graph enumeration — would settle the question in the opposite
 direction. This is an open problem in finite geometry in its own right,
-and the hardest item on the list.
+and the hardest item on the list. <strong>Update (2026-09-24):</strong> §10.5 is
+the current statement of this item — closed by measurement, open by
+mathematics; what is missing is a hereditary constraint on partial local
+graphs worth three orders of magnitude.
 </p>
 
 <h3>6. Star-complement enumeration &nbsp;<em>(exact, untried)</em></h3>
@@ -462,7 +483,10 @@ extension-compatibility graph; any clique reconstructs a 37-vertex SRG.
 The method (Cvetković–Rowlinson–Simić) is <em>exact</em>, assumes no
 automorphism, and gives a proof certificate if the $H$'s are exhausted —
 and it is GPU-batchable with the spectrum and PSD kernels we already have.
-Genuinely untried here.
+Genuinely untried here. <strong>Update (2026-09-24):</strong> no longer untried —
+star-complement completion is the forced-completion step of the
+neighbourhood pipeline (§10.5.3), and the exact certificate it promises is
+exactly $W \approx 10^{12}$ completions wide (§10.5.4).
 </p>
 
 <h3>7. SDP / interlacing cube-pruning &nbsp;<em>(kills hard cubes)</em></h3>
@@ -474,7 +498,10 @@ semidefinite feasibility test on a partially-assigned principal submatrix
 \sqrt{37}\,I$? — can <em>refute</em> a hard cube that SAT cannot split,
 and the tests batch on the GPU PSD/Cholesky kernels. Not a global proof on
 its own, but a cube-killer that complements the SMS search on exactly the
-${\sim}87$ residual cubes.
+${\sim}87$ residual cubes. <strong>Update (2026-09-24):</strong> measured — an
+interlacing spectral shield inside the CDCL search was a null result
+(<a href="ch13_engine.html">Ch 13</a>, §13.2: $11$ hard vs $11$ hard); see
+also the Path 8 update.
 </p>
 
 <h3>8. Feasible-characteristic-polynomial tables &nbsp;<em>(new — from the 2026 literature)</em></h3>
@@ -495,7 +522,11 @@ partial matrix whose completed principal block falls off-table is soundly
 refuted. Strictly stronger than interval interlacing $+$ the de Caen
 identity at those levels; an endgame propagator for exactly the deep hard
 cubes the recursion isolates. Untried — the top implementation candidate
-if the fractal persists.
+if the fractal persists. <strong>Update (2026-09-24):</strong> measured on
+2026-09-22 — the characteristic-polynomial / interlacing propagator is
+already deployed in the orderly generator (which never completes column
+$17$, §10.5.4) and, as a spectral shield for the SAT search, measured null;
+the tables do not move the wall.
 </p>
 
 <p>
@@ -533,7 +564,11 @@ entry.
 </div>
 
 <p>
-Either ending is publishable; neither is reached yet. The tools to
+Either ending is publishable; neither is reached yet.
+<strong>Update (2026-09-24):</strong> both endings are now priced — the closure
+ending at $106{,}955$ tower-$0$ leaves above $4$ h each (§10.5.2), the
+neighbourhood alternative at $W \approx 10^{12}$ (§10.5.4) — and neither has
+been reached. The tools to
 attempt both are catalogued next, in
 <a href="ch11_tools.html">Chapter 11</a> — every image, script and data
 file, ready to run.
@@ -664,7 +699,8 @@ run separately; it is the only non-hard gap in tower 0.)
 <p>
 Fix a vertex $v$ and its neighbourhood $H=N(v)$, an $8$-regular graph on $18$ vertices. Once $H$ is admissible
 the completion is forced (star complement, $0.15$ s), so the classification cost is the number $W$ of
-admissible $H$. Two candidate necessary conditions on $H$ beyond positivity were derived and measured on
+admissible $H$. The route was run as far as it goes before $W$ was known: $372{,}881 + 222{,}188$ admissible local
+graphs decided by forced completion, none extends. Two candidate necessary conditions on $H$ beyond positivity were derived and measured on
 $1{,}500$ catalogue neighbourhoods against $12{,}000$ generated admissible ones: the switching-spectrum
 condition (every eigenvalue $\theta$ of $H$ reappears in the non-neighbourhood as $\theta$ or $-1-\theta$, with
 integral triangle and $4$-cycle counts) is satisfied by $100\%$ of both sets — it is forced by
@@ -681,14 +717,14 @@ only bites beyond order $19$). Nothing at the level of completed local graphs pr
 What nobody had measured is $W$ itself. The edge-switch Markov chain samples labelled $8$-regular graphs on
 $18$ vertices uniformly; the fraction that pass the exact leaf test of the Stage-A generator (both cone
 Gram blocks positive semidefinite; the intersection caps turn out to be vacuous for $8$-regular graphs on
-$18$ vertices) is $P = $ 3.3	imes10^{-6}, and the number of labelled $8$-regular graphs on $18$ vertices is
+$18$ vertices) is $P = 3.3\times10^{-6}$, and the number of labelled $8$-regular graphs on $18$ vertices is
 $1.8\times10^{33}$ (McKay–Wormald dense formula, checked against the classification of $5$-regular graphs
 on $14$ vertices). Dividing by $18!$:
 </p>
 
 <div class="callout definition">
     <div class="callout-title">The width</div>
-    <p>$W \approx$ 10^{12} admissible local graphs up to isomorphism ($1.3	imes10^{8}$ samples in seven independent chains, $441$ admissible, statistical error $pm5%$; a chain with ten times more switches per sample agrees within its own error). Of these, the
+    <p>$W \approx 10^{12}$ admissible local graphs up to isomorphism ($1.3\times10^{8}$ samples in seven independent chains, $441$ admissible, statistical error $\pm 5\%$; a chain with ten times more switches per sample agrees within its own error). Of these, the
     known graphs account for about $2.7\times10^{5}$: fewer than one admissible neighbourhood in a million
     extends.</p>
 </div>
@@ -703,7 +739,7 @@ Seidel-matrix enumeration at order $19$, the neighbourhood route) has this same 
 
 <div class="callout theorem">
     <div class="callout-title">A new leaf condition, found the same day (the norm-square condition)</div>
-    <p>For any $19$-subset $X$ of the $38$ points with complement $Y$, write $S=\begin{pmatrix}A&B\B^{\mathsf T}&D\end{pmatrix}$;
+    <p>For any $19$-subset $X$ of the $38$ points with complement $Y$, write $S=\begin{pmatrix}A&B\\B^{\mathsf T}&D\end{pmatrix}$;
     then $A^2+BB^{\mathsf T}=37I$, so $\det(37I-A^2)=\det(B)^2$ with $B$ a $19\times19$ $(\pm1)$-matrix, whose determinant is
     divisible by $2^{18}$. For the cone $X=\{v\}\cup N(v)$ the two apex eigenvalues $(1\pm\sqrt{73})/2$ contribute $18^2$ and
     the all-ones eigenvalue of $S_H$ contributes $36$, hence
@@ -751,8 +787,8 @@ classification open by mathematics, not by compute.
     const ROWS = [
         { fam: "SAT", attack: "de Caen rich-Aut survey", budget: "40 seeds × 180 s", result: "all time out (Wall A)", out: "exhausted" },
         { fam: "SAT", attack: "Smart Cubing (prerun + conquer)", budget: "~1024 cubes × 60 s", result: "all UNKNOWN", out: "exhausted" },
-        { fam: "SAT", attack: "SMS+CCL two-graph(38), 7 towers ×256", budget: "1792 cubes, 24h ea", result: "1653 empty · ~87 hard · 0 new", out: "promising" },
-        { fam: "SAT", attack: "v2 engine: full lex chain + recursive autosplit", budget: "live since 2026-07-01", result: "50–70× faster; >98% of tower space proven empty", out: "promising" },
+        { fam: "SAT", attack: "SMS+CCL two-graph(38), 7 towers ×256", budget: "1792 cubes, 24h ea", result: "1653 empty · ~87 hard · 0 new (2026-06-29)", out: "promising" },
+        { fam: "SAT", attack: "v2 engine: full lex chain + recursive autosplit (fleet)", budget: "2026-07-01 → fleet drained 2026-09-18", result: "2.36M-row ledger; 106,955 HARD@40 leaves left in tower 0 (>49 CPU-yr); 0 new — route cannot finish (§10.5.2)", out: "exhausted" },
         { fam: "SAT", attack: "CDCL(⊕) Xorcle on exported cubes", budget: "n=14…38, 300–1200 s", result: "OOM ≥ n=22; n=14 undecided in 300 s", out: "exhausted" },
         { fam: "SAT", attack: "Neighbour extension (CP-SAT + kissat)", budget: "60 cands × 30–300 s", result: "0 SAT, 0 refuted", out: "exhausted" },
         { fam: "Switching", attack: "Godsil–McKay single-cell (4–12)", budget: "exhaustive + sampled", result: "0 valid cells", out: "exhausted" },
@@ -760,12 +796,12 @@ classification open by mathematics, not by compute.
         { fam: "Search", attack: "Catalog basin-hopping (LK-2)", budget: "360 × 20 × 5000", result: "0 novel; 4% recover seed", out: "exhausted" },
         { fam: "Search", attack: "Simulated annealing", budget: "120 × 50 000", result: "best viol ≥ 340", out: "exhausted" },
         { fam: "Search", attack: "Euclidean embedding (Adam, ℝ¹⁸)", budget: "70 trials", result: "binarised viol ~1000", out: "exhausted" },
-        { fam: "Search", attack: "GPU SLS + defect-repair (Seidel S²=37I)", budget: "live, RTX 5060 Ti", result: "56K cand/s in the deepest surviving cubes; 0 hits yet", out: "promising" },
+        { fam: "Search", attack: "GPU SLS + defect-repair (Seidel S²=37I)", budget: "RTX 5060 Ti, 2026-07 →", result: "56K cand/s in the deepest surviving cubes; 0 hits ever (§10.5)", out: "exhausted" },
         { fam: "LLM", attack: "AlphaEvolve (GPT-5)", budget: "2 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "cpro1 algebraic constructor", budget: "10 / 10 rounds", result: "rediscovers Paley(37)", out: "exhausted" },
         { fam: "LLM", attack: "Multi-agent debate (4 roles)", budget: "5 / 5 rounds", result: "best viol 1148", out: "exhausted" },
         { fam: "Backtrack", attack: "Python extension backtracker", budget: "220 nodes/s, 30 s", result: "no extension found", out: "exhausted" },
-        { fam: "Backtrack", attack: "Rust bitset extender", budget: "in progress", result: "orders of magnitude faster", out: "promising" },
+        { fam: "Backtrack", attack: "Rust bitset extender → star-complement forced completion", budget: "0.15 s per H; 595,069 admissible H decided", result: "0 extend; width W≈1e12 ⇒ ≥30 CPU-yr (§10.5.3–4)", out: "exhausted" },
     ];
     const $ = id => document.getElementById(id);
     const body = $("sb-body");

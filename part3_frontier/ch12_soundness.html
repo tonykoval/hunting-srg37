@@ -43,6 +43,7 @@
         <li><a href="ch10_frontier.html">10. Breaking the Wall</a></li>
         <li><a href="ch11_tools.html">11. Tools &amp; Reproducibility</a></li>
         <li><a href="ch12_soundness.html">12. Is the Search Correct?</a></li>
+        <li><a href="ch13_engine.html">13. The Engine</a></li>
     </ol>
     <h2>Appendices</h2>
     <ol>
@@ -149,6 +150,12 @@ two symmetry-breaking schemes.
     </p>
 </div>
 
+<p>
+<strong>Update (2026-09-24):</strong> the 2026-09-23 gauge audit re-checked the
+drivers and logs: <code>CANON_CCL</code> was never used in any campaign run,
+so every ledger certificate is a row-lex certificate.
+</p>
+
 <h2>12.4 &nbsp; Dedup cannot suppress a real graph</h2>
 
 <p>
@@ -190,6 +197,17 @@ live state (a snapshot — re-derived from the result log, not a guess):
         ${\sim}87$ hard cubes.
     </p>
 </div>
+
+<p>
+<strong>Update (2026-09-24):</strong> the snapshot above is the June state.
+After the fleet ledgers were merged (2026-09-23; $2{,}359{,}258$ rows) the
+certified fraction at the depth-$40$ cap is $84.5\%$ ($1{,}334{,}652$ of
+$1{,}580{,}097$ cap-level nodes, 2026-09-21), the live residue is
+$280{,}787$ HARD leaves — $106{,}955$ in tower $0$, which by the audited
+gauge reduction is the only tower that must be finished — and there is still
+no new descendant. The decision procedure below is unchanged; its price is in
+<a href="ch10_frontier.html">§10.5.2</a>.
+</p>
 
 <div class="callout theorem">
     <div class="callout-title">The decision procedure</div>
